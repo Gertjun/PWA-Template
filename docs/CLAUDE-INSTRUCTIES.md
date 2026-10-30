@@ -1,6 +1,6 @@
 # Projectinstructies voor Claude
 
-Kopieer alles onder de streep naar de **Instructies** van je Claude-project. Vul per app het blok *Over deze app* in. Zet daarnaast in de **projectkennis**: `README.md`, `js/config.js`, `js/app.js` en de bestanden in `js/core/` (of minstens `shell.js`, `vault.js` en `records.js`).
+Kopieer alles onder de streep naar de **Instructies** van je Claude-project en vul het blok *Over deze app* in. Vul vooral de app-repo goed in. Codebestanden hoef je **niet** als projectkennis toe te voegen: Claude werkt direct in de repo en leest daar altijd de actuele versie.
 
 ---
 
@@ -11,17 +11,29 @@ Kopieer alles onder de streep naar de **Instructies** van je Claude-project. Vul
 - **Belangrijkste schermen:** …
 - **Datamodel:** … (collecties en hun velden, bijvoorbeeld `items: { id, titel, bedragCenten, datum }`)
 - **Externe API's:** geen / … (moeten in de CSP `connect-src` in `index.html`)
-- **Repo's:** app `…/…` (GitHub Pages) · data `…/…` (privé), pad `…/vault.json`
+- **App-repo:** `…/…` (GitHub Pages: `https://….github.io/…/`)
+- **Data-repo:** `…/…` (privé), pad `…/vault.json`. Hier komt Claude niet aan.
 - **Huidige versie:** …
 
 ## Over mij en de werkwijze
 
 - Communiceer in het Nederlands. Alle teksten in de app zijn ook Nederlands.
 - Ik bouw deze apps voor mezelf en ben geen fulltime ontwikkelaar. Leg kort uit wat je wijzigt en waarom, in gewone taal.
-- Lever voor elk gewijzigd bestand het **volledige bestand**, met het pad erboven. Geen fragmenten zoals "rest blijft hetzelfde". Is alleen een klein stuk van een groot bestand gewijzigd, noem dan exact welke regels vervangen moeten worden.
-- Sluit elke levering af met: de gewijzigde bestanden, het nieuwe versienummer en hoe ik het kan testen.
 - Vraag eerst als een wijziging bestaande gegevens raakt of het datamodel verandert.
 - Houd het simpel: geen frameworks, geen build-stap, geen npm-packages en geen CDN-scripts. Alleen HTML, CSS en JavaScript-modules.
+
+## Werken in de repo
+
+- **Begin van elke sessie**: koppel de app-repo, haal de laatste versie op en lees `CHANGELOG.md`, `js/config.js` en `js/app.js`. Lees `README.md` en `js/core/` als je ze nodig hebt.
+- **Wijzigingen gaan direct naar `main`.** Elke push staat binnen een paar minuten live op mijn telefoon. Daarom:
+  1. Test eerst lokaal (zie *Testen*). Open de app in een browser en controleer dat hij start, dat er geen fouten in de console staan en dat de gewijzigde functie werkt. Push nooit iets wat je niet hebt gedraaid.
+  2. Werk de versie en `CHANGELOG.md` bij (zie de vaste regels hieronder).
+  3. Maak per afgeronde wijziging één commit, met een korte Nederlandse commitboodschap die zegt wat er voor mij verandert, bijvoorbeeld "Categorieën toevoegen aan uitgaven (1.3.0)".
+  4. Push naar `main`.
+- **Nooit**: force-pushen, de geschiedenis herschrijven, branches verwijderen, of iets doen met de data-repo of tokens.
+- **Gaat er na een push iets mis?** Draai de commit terug met `git revert` en push dat, zodat de werkende versie meteen terug is. Zoek daarna rustig de oorzaak.
+- **Twijfel je over een grote of riskante wijziging** (datamodel, `core/`, iets wat gegevens kan raken)? Leg eerst kort het plan voor en wacht op mijn akkoord voordat je pusht.
+- **Na het pushen** meld je in gewone taal: wat er veranderd is, het nieuwe versienummer en wat ik op mijn telefoon kan controleren. Bijvoorbeeld: "open de app, tik op *Bijwerken* en kijk of …".
 
 ## Architectuur (gebaseerd op mijn PWA-template)
 
@@ -45,11 +57,11 @@ Kopieer alles onder de streep naar de **Instructies** van je Claude-project. Vul
 10. **Bestanden aanbieden** (export, rapport): via `saveFile()` uit `core/dom.js`, nooit met een eigen download-link.
 11. **CHANGELOG.md**: noteer elke versie met wat er is opgelost, toegevoegd of gewijzigd, in gewone taal.
 
-## Testen (vermeld wat relevant is)
+## Testen (vóór elke push, voor zover relevant)
 
-- Lokaal: `python3 -m http.server 8080` → `http://localhost:8080`
+- Lokaal: `python3 -m http.server 8080` → `http://localhost:8080`. Test in een headless browser (bijvoorbeeld Playwright) op een iPhone-formaat scherm, in light en dark mode.
 - Nieuwe kluis → items toevoegen → vergrendelen → ontgrendelen
 - Sync tussen twee apparaten, inclusief een gelijktijdige wijziging op beide (handmatig via de sync-knop, of vergrendelen)
 - Twee tabbladen tegelijk open: een wijziging in het ene verschijnt in het andere
 - Bestaande gegevens van de vorige versie laden (migratie)
-- Na deploy: melding "Nieuwe versie beschikbaar" verschijnt op de iPhone
+- Na de push: GitHub Pages is bijgewerkt en geïnstalleerde apps tonen "Nieuwe versie beschikbaar". Dat controleer ik zelf op mijn telefoon.

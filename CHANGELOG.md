@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0
+
+**Toegevoegd**
+- Automatische setup: na *Use this template* stelt de workflow *Nieuwe app instellen* naam, opslag-id, datapad, versie, manifest en titels in en probeert GitHub Pages aan te zetten. Handmatig te starten met een eigen naam, kleur en icoonletter; de iconen worden dan in alle formaten gemaakt (`tools/setup.mjs`).
+- De accentkleur bepaalt automatisch de tekstkleur op knoppen (wit of donker), zodat ook lichte kleuren leesbaar blijven.
+
 ## 1.1.0
 
 **Opgelost**

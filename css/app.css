@@ -1,0 +1,22 @@
+/* =============================================================
+   App-specifieke stijl — PAS DIT AAN PER APP
+   ============================================================= */
+
+/* Eigen accentkleur (ook theme_color in manifest.webmanifest aanpassen): */
+:root {
+  --accent: #2563eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --accent: #5b8cff; }
+}
+
+/* Demo: invoerregel bovenaan */
+.add-form {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+.add-form input { border-color: transparent; background: transparent; }
+.add-form input:focus-visible { box-shadow: none; border-color: transparent; }
+
+.list-item.is-done .check span { color: var(--muted); text-decoration: line-through; }

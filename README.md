@@ -36,6 +36,7 @@ js/core/                De template-kern (niet aanpassen per app)
   dom.js                h(), formatEuro(), parseEuro(), today(), saveFile()
 icons/                  App-iconen (icon.svg is de bron)                ← per app
 docs/CLAUDE-INSTRUCTIES.md   Instructies om in je Claude-project te plakken
+docs/STARTPROMPT.md     Eerste bericht voor een nieuw app-project
 CHANGELOG.md            Wijzigingen per versie
 tools/setup.mjs         Stelt een nieuwe app in (naam, kleur, iconen)
 .github/workflows/setup.yml  Draait setup.mjs automatisch na "Use this template"
@@ -58,7 +59,7 @@ tools/setup.mjs         Stelt een nieuwe app in (naam, kleur, iconen)
    - en probeert GitHub Pages aan te zetten.
 3. **Eigen naam, kleur of icoonletter?** Ga naar Actions → *Nieuwe app instellen* → **Run workflow**, vul de velden in en vink *Opnieuw instellen* aan. De kleur en de iconen (alle formaten) worden dan ook gemaakt.
 4. **GitHub Pages**: de samenvatting van de workflow laat zien of dit gelukt is. Zo niet, dan is het één klik: Settings → Pages → *Deploy from a branch* → `main` / `(root)` → Save.
-5. **De app bouwen** doe je met Claude: maak een Claude-project, plak `docs/CLAUDE-INSTRUCTIES.md` in de instructies en vul de reponaam in. Claude werkt dan direct in de repo (`js/app.js` en `css/app.css`), test lokaal en pusht naar `main`. Gebruikt de app een externe API, dan moet het domein in `connect-src` van de CSP in `index.html`; dat staat in de instructies voor Claude.
+5. **De app bouwen** doe je met Claude: maak een Claude-project, plak `docs/CLAUDE-INSTRUCTIES.md` in de instructies en vul de reponaam in. Claude werkt dan direct in de repo (`js/app.js` en `css/app.css`), test lokaal en pusht naar `main`. Begin het gesprek met de prompt uit `docs/STARTPROMPT.md`. Gebruikt de app een externe API, dan moet het domein in `connect-src` van de CSP in `index.html`; dat staat in de instructies voor Claude.
 6. **Op je iPhone installeren**: open `https://<gebruiker>.github.io/<repo>/` in Safari → Deel → *Zet op beginscherm*.
 
 > **Workflow faalt bij "Wijzigingen opslaan"?** Zet dan in de nieuwe repo Settings → Actions → General → *Workflow permissions* op **Read and write permissions** en start de workflow opnieuw via Run workflow.

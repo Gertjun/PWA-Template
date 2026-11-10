@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.3.0
+
+Verbeteringen uit MW4 Camo Tracker, Games Backlog en Energieverbruik teruggezet in de template, zodat alle apps weer dezelfde kern hebben.
+
+**Toegevoegd**
+- Face ID / passkey na opnieuw installeren: kies je bestaande passkey met *Bestaande passkey*. Elke app gebruikt een vaste PRF-invoer, dus dezelfde passkey geeft altijd hetzelfde geheim. Passkeys van een andere app op hetzelfde domein worden herkend en geweigerd.
+- Face ID start vanzelf bij het openen van de app of bij terugkeer (`autoBiometricUnlock`, Safari vanaf iOS 17.4). Annuleren laat gewoon de knop en het wachtwoordveld staan.
+- Automatisch vergrendelen is per apparaat in te stellen (Instellingen → Beveiliging).
+- Instellingen als overzicht met een pagina per onderdeel en een Terug-knop, zoals op iOS (alleen als `#settings-menu` in `index.html` staat).
+- Instellingen kunnen ook als scherm in de app (`<dialog id="dlg-settings" data-mode="page">`, met het event `settings:open`) of als paneel in de pagina (`#settings-panel` met secties met `data-group`, te tonen via `ctx.showShellSettings(group)`).
+- Elke knop met `data-open-settings` opent de instellingen; elementen met `data-app-version` tonen het versienummer.
+- `ctx.syncConfigured` en `ctx.readSyncFile(path)` om een ander, onversleuteld bestand uit de data-repo te lezen; `getText()` in de GitHub-client.
+- Kopstijl `.app-brand` (icoon, naam en versie) in `base.css`.
+
+**Gewijzigd**
+- Kleuren in `base.css` staan nu als `light-dark(licht, donker)` in één regel. Een app kan licht of donker vastzetten met `data-modus="licht"` of `"donker"` op `<html>`.
+
 ## 1.2.0
 
 **Toegevoegd**

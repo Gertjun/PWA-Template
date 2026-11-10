@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.0
+
+Eén vaste indeling voor alle apps.
+
+**Toegevoegd**
+- **Navigatie in de kern** (`js/core/nav.js`): de app geeft zijn schermen op in `app.screens`; de schil tekent ze als tabbalk onderin (telefoon), tabbladen onder de kopbalk (iPad rechtop) of inklapbare zijbalk links (laptop, iPad liggend). `ctx.screen`, `ctx.go(id)` en `ctx.setBadge(id, n)`.
+- **Instellingen is altijd het laatste scherm** en opent met hetzelfde overzicht: Synchronisatie, Beveiliging, Back-up, Over deze app en Dit apparaat wissen. Het tandwiel in de kopbalk is weg. `ctx.openSettings(pagina)`.
+- **Kopbalk**: app-icoon met naam en versie; naast de zijbalk de titel van het scherm. Synchroniseren en vergrendelen staan altijd rechtsboven.
+- **Koppelcode met pincode** (`js/core/pair.js`): Instellingen → Synchronisatie → *Ander apparaat koppelen* maakt een code; op het nieuwe apparaat plak je die bij *Bestaande koppelen*. Het wachtwoord van de kluis zit er niet in.
+- **Bouwstenen** (`js/core/ui.js`): `filterControl()` (chips op de telefoon, keuzelijst op iPad en laptop), `emptyState()` en `card()`.
+
 ## 1.3.0
 
 Verbeteringen uit MW4 Camo Tracker, Games Backlog en Energieverbruik teruggezet in de template, zodat alle apps weer dezelfde kern hebben.

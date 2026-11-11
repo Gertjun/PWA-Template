@@ -5,6 +5,9 @@
 **Toegevoegd**
 - Eigen instellingenpagina's van een app: een `<section id="settings-…" class="settings-section" data-app-page>` met een regel in `#settings-menu`; de app vult de pagina in `app.renderSettings(page, el, ctx)`.
 
+**Verbeterd**
+- De zijbalk is iets breder (236 px), zodat een appnaam als "Energieverbruik" op één regel past.
+
 ## 1.4.1
 
 **Verbeterd**

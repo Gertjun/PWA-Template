@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.2
+
+**Toegevoegd**
+- Eigen instellingenpagina's van een app: een `<section id="settings-…" class="settings-section" data-app-page>` met een regel in `#settings-menu`; de app vult de pagina in `app.renderSettings(page, el, ctx)`.
+
 ## 1.4.1
 
 **Verbeterd**

@@ -12,6 +12,9 @@
 //   screens              → de schermen in de navigatie: [{ id, label, icon }]
 //                          (Instellingen komt er vanzelf als laatste bij)
 //   render(root, ctx)    → het scherm ctx.screen opbouwen in `root`
+//   renderSettings(page, el, ctx) → (optioneel) eigen instellingenpagina's: een
+//                          <section id="settings-<page>" class="settings-section" data-app-page>
+//                          in index.html met een regel in #settings-menu
 //
 // ctx.data              huidige gegevens (alleen lezen!)
 // ctx.update(fn)        wijzigen: await ctx.update(d => { d.items.push(...) })

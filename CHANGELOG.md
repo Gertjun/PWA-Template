@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.1
+
+**Verbeterd**
+- Het gekozen scherm in de navigatie gebruikt `--accent-text` als die is opgegeven, zodat een lichte accentkleur (geel) leesbaar blijft.
+- Een lange appnaam loopt in de zijbalk door op een tweede regel in plaats van afgekapt te worden.
+- iPad (app op het beginscherm): de kopbalk schuift niet meer onder de statusbalk.
+
 ## 1.4.0
 
 Eén vaste indeling voor alle apps.

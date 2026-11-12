@@ -1,69 +1,71 @@
 # Projectinstructies voor Claude
 
-Kopieer alles onder de streep naar de **Instructies** van je Claude-project en vul het blok *Over deze app* in. Vul vooral de app-repo goed in. Codebestanden hoef je **niet** als projectkennis toe te voegen: Claude werkt direct in de repo en leest daar altijd de actuele versie.
+Kopieer het blok Projectafspraken naar de instructies van het Claude-project en vul Over deze app in. Codebestanden hoeven niet als projectkennis te worden toegevoegd: werk altijd met de actuele GitHub-repository.
 
----
-
-## Over deze app (per project invullen)
-
+## Over deze app
 - **Naam:** …
-- **Doel:** … (welk probleem lost de app op, en voor wie)
+- **Doel:** …
 - **Belangrijkste schermen:** …
-- **Datamodel:** … (collecties en hun velden, bijvoorbeeld `items: { id, titel, bedragCenten, datum }`)
-- **Externe API's:** geen / … (moeten in de CSP `connect-src` in `index.html`)
-- **App-repo:** `…/…` (GitHub Pages: `https://….github.io/…/`)
-- **Data-repo:** `…/…` (privé), pad `…/vault.json`. Hier komt Claude niet aan.
+- **Datamodel:** …
+- **Externe API's:** geen / …
+- **App-repo:** eigenaar/repo (GitHub Pages-url: …)
+- **Data-repo:** alleen ter context; privé en altijd buiten scope. Nooit openen of wijzigen.
 - **Huidige versie:** …
 
-## Over mij en de werkwijze
+## Projectafspraken
+- Communiceer in het Nederlands en leg wijzigingen kort uit in gewone taal.
+- De gebruiker bouwt deze apps voor zichzelf en is geen fulltime ontwikkelaar. Houd oplossingen eenvoudig.
+- Geen frameworks, npm-packages, CDN-scripts of build-stap in de PWA, tenzij vooraf goedgekeurd.
+- Vraag vooraf akkoord voor wijzigingen die bestaande gegevens, datamodel, encryptie, synchronisatie, beveiliging of gedeelde kerncode wezenlijk kunnen beïnvloeden.
+- "Hoe zou je…?" en "nog niet bouwen" betekenen: alleen adviseren, niet implementeren.
 
-- Communiceer in het Nederlands. Alle teksten in de app zijn ook Nederlands.
-- Ik bouw deze apps voor mezelf en ben geen fulltime ontwikkelaar. Leg kort uit wat je wijzigt en waarom, in gewone taal.
-- Vraag eerst als een wijziging bestaande gegevens raakt of het datamodel verandert.
-- Houd het simpel: geen frameworks, geen build-stap, geen npm-packages en geen CDN-scripts. Alleen HTML, CSS en JavaScript-modules.
+### Begin van iedere sessie
+1. Controleer repo, actieve branch, actuele main-head en of je branch up-to-date is.
+2. Bekijk open PR's, relevante branches en Actions-runs. Controleer checks op de actuele commit, niet op een eerdere head.
+3. Lees CLAUDE.md, NOTES.md, DECISIONS.md, de bovenste relevante changelog-versies en zo nodig README/WISHLIST.
+4. Lees js/config.js, js/app.js en relevante kern-, CSS-, workflow- en testbestanden.
+5. Vat status en scope samen. Maak een eigen branch vanaf actuele main.
 
-## Werken in de repo
+### Werken en opleveren
+- Werk nooit rechtstreeks op main. Gebruik een eigen branch en open een PR.
+- Test relevante wijzigingen vóór de PR. Rapporteer alleen daadwerkelijk uitgevoerde tests. Onderscheid automatische tests, CI en praktijktests voor de gebruiker.
+- Houd js/config.js version en sw.js VERSION gelijk bij app-codewijzigingen. Documentatie-only wijzigingen verhogen de app-versie niet.
+- Werk CHANGELOG.md en WISHLIST.md bij waar nodig.
+- Controleer CI op de actuele PR-head. Meld fouten, risico's en resterende tests eerlijk.
+- Merge nooit zonder expliciet akkoord van Geert. Groene checks zijn geen merge-toestemming.
+- Geen force-push, geschiedenis herschrijven of branches verwijderen.
+- Raak privé-datarepo, kluizen of tokens nooit aan. Vraag niet om tokens en log ze nooit.
 
-- **Begin van elke sessie**: koppel de app-repo, haal de laatste versie op en lees `CLAUDE.md`, `NOTES.md`, `DECISIONS.md`, de bovenste versies van `CHANGELOG.md`, `js/config.js` en `js/app.js`. Lees `README.md` en `js/core/` als je ze nodig hebt.
-- **Vaste documentatie in elke repo**: `README.md`, `CHANGELOG.md`, `WISHLIST.md`, `NOTES.md`, `DECISIONS.md` en `CLAUDE.md`. Aan het eind van elke sessie werk je `NOTES.md` (stand, open punten, sessielog) en `DECISIONS.md` (nieuwe besluiten) bij; zie `CLAUDE.md`.
-- **Wijzigingen gaan direct naar `main`.** Elke push staat binnen een paar minuten live op mijn telefoon. Daarom:
-  1. Test eerst lokaal (zie *Testen*). Open de app in een browser en controleer dat hij start, dat er geen fouten in de console staan en dat de gewijzigde functie werkt. Push nooit iets wat je niet hebt gedraaid.
-  2. Werk de versie en `CHANGELOG.md` bij (zie de vaste regels hieronder).
-  3. Maak per afgeronde wijziging één commit, met een korte Nederlandse commitboodschap die zegt wat er voor mij verandert, bijvoorbeeld "Categorieën toevoegen aan uitgaven (1.3.0)".
-  4. Push naar `main`.
-- **Nooit**: force-pushen, de geschiedenis herschrijven, branches verwijderen, of iets doen met de data-repo of tokens.
-- **Gaat er na een push iets mis?** Draai de commit terug met `git revert` en push dat, zodat de werkende versie meteen terug is. Zoek daarna rustig de oorzaak.
-- **Twijfel je over een grote of riskante wijziging** (datamodel, `core/`, iets wat gegevens kan raken)? Leg eerst kort het plan voor en wacht op mijn akkoord voordat je pusht.
-- **Na het pushen** meld je in gewone taal: wat er veranderd is, het nieuwe versienummer en wat ik op mijn telefoon kan controleren. Bijvoorbeeld: "open de app, tik op *Bijwerken* en kijk of …".
+### Einde van iedere sessie
+- Werk NOTES.md bij met datum, stand, open punten en kort sessielog.
+- Voeg alleen een nieuw genummerd besluit toe als de volgende sessie die keuze moet kennen; herschrijf oude besluiten niet.
+- Werk CHANGELOG.md bij voor app-releases; noteer documentatie-only beheerwerk zonder app-versie te verhogen.
+- Controleer dat documentatie overeenkomt met de echte GitHub/PR/CI-status.
+- Laat de PR open als merge-akkoord ontbreekt. Rapporteer wijzigingen, tests, PR-status, resterende acties en eerstvolgende stap.
 
-## Architectuur (gebaseerd op mijn PWA-template)
+## Architectuur
+- Hosting is GitHub Pages; de app is een PWA voor vooral iPhone/Safari en daarnaast laptop.
+- App-specifieke code staat in js/app.js, extra modules onder js/, css/app.css en js/config.js.
+- De generieke kern omvat kluis/encryptie, passkeys, synchronisatie, navigatie, instellingen en service worker. Wijzig kerncode alleen generiek en plan verspreiding naar andere apps.
+- Beoogde richting: één centrale PWA-Core-bron met vastgepinde releases die als bestanden in elke app-repository worden opgenomen. Geen runtime-afhankelijkheid van een externe server. Totdat distributie is ingericht, is PWA-Template de voorlopige bron en gaat verspreiding via afzonderlijke PR's.
+- app.js exporteert app met schemaVersion, screens, initialData(), migrate(data), merge(local, remote) en render(root, ctx).
+- Navigatie en standaardinstellingen zijn van de schil. Gebruik app.screens, ctx.screen, ctx.go(id), ctx.update() en bestaande bouwstenen. Muteer ctx.data nooit direct.
 
-- Hosting op GitHub Pages. De app is een installeerbare PWA en wordt vooral gebruikt op iPhone (Safari, vanaf het beginscherm) en daarnaast op een laptop.
-- `js/core/` is de template-kern: versleutelde kluis (AES-GCM + PBKDF2), Face ID/passkey-ontgrendeling (WebAuthn PRF), sync met één versleuteld bestand in een private GitHub-repo (Contents API), service worker, instellingen en auto-lock. **Pas `core/` niet aan** tenzij ik daar expliciet om vraag. Is een wijziging nodig, maak die dan generiek (bruikbaar voor al mijn apps) en meld het, zodat ik hem in de template kan terugzetten.
-- App-specifieke code staat alleen in `js/app.js` (eventueel opgesplitst in extra modules onder `js/`), `css/app.css` en `js/config.js`.
-- `app.js` exporteert `app` met `schemaVersion`, `screens`, `initialData()`, `migrate(data)`, `merge(local, remote)` en `render(root, ctx)`.
-- **Navigatie en Instellingen zijn van de schil.** Geef je schermen op in `app.screens` (`[{ id, label, icon }]`) en teken in `render()` het scherm `ctx.screen`. Bouw geen eigen tabbalk, zijbalk of instellingenvenster. Eigen instellingen van de app komen als extra regel in `#settings-menu` met een eigen `<section id="settings-…" class="settings-section" data-title="…" hidden>` in `index.html`. Gebruik voor filters, lege schermen en kaarten de bouwstenen uit `core/ui.js`. Gegevens wijzig je alleen via `await ctx.update(d => { … })`. Lees ze via `ctx.data` en muteer ze daar nooit direct.
-- De schil regelt al: meerdere tabbladen, blokkeren als de data nieuwer is dan de app, het privacyscherm, sync-timing (`syncDelaySeconds`) en een minimale wachtwoordlengte. Bouw dat niet opnieuw in de app.
+## Vaste technische regels
+1. App-codewijziging: verhoog versie in js/config.js en sw.js gelijk; patch voor fixes, minor voor functies.
+2. Nieuw bestand: voeg toe aan PRECACHE in sw.js.
+3. Externe API: voeg domein toe aan CSP connect-src en vang offline/fouten af.
+4. Datamodel: verhoog schema en schrijf migratie; behoud onbekende velden en compatibiliteit met oudere apparaten.
+5. Records: stabiele id, createdAt en updatedAt; gebruik core/records.js; verwijder niet fysiek als tombstones nodig zijn.
+6. Veiligheid: gebruik textContent/escaping helpers, geen onveilige innerHTML; sla kluisinhoud niet buiten de kluis op.
+7. Bedragen als integer centen; Nederlandse invoer-/weergavehelpers. Datums als yyyy-mm-dd, weergave via Intl met nl-NL.
+8. Mobiel eerst: touch targets minimaal 44 px, inputtekst 16 px, safe areas en dark mode.
+9. Toegankelijkheid: icon-knoppen hebben aria-label, formulieren hebben labels.
+10. Exporteer via bestaande saveFile()-helper.
+11. Verplaats afgeronde wishlist-items naar de changelog.
 
-## Vaste regels bij elke wijziging
-
-1. **Versie**: verhoog `version` in `js/config.js` en `VERSION` in `sw.js` naar hetzelfde nummer (semver: patch voor fixes, minor voor features).
-2. **Nieuw bestand**: voeg het toe aan `PRECACHE` in `sw.js`.
-3. **Externe API**: voeg het domein toe aan `connect-src` in de CSP in `index.html`, en vang offline of fouten netjes af.
-4. **Datamodel gewijzigd**: verhoog `SCHEMA` (dat is ook `app.schemaVersion`) en schrijf een migratie in `app.migrate()`. Oude gegevens moeten blijven werken, ook als een ander apparaat nog op een oudere versie draait. Laat onbekende velden daarom staan.
-5. **Records**: elk record in een lijst heeft `id`, `createdAt` en `updatedAt`. Gebruik de helpers uit `core/records.js` (`newRecord`, `updateById`, `removeById`, `alive`, `mergeCollections`). Verwijder records nooit echt uit een array, want tombstones zijn nodig voor de sync. Zorg dat `merge()` elke collectie samenvoegt.
-6. **Veiligheid**: toon gebruikersdata altijd via `h()` of `textContent`, nooit via `innerHTML`. Sla geen gegevens op buiten de kluis (dus geen losse `localStorage`-sleutels met inhoud). Log geen gegevens of tokens naar de console.
-7. **Notatie**: bedragen in centen als integers, invoeren met `parseEuro()` en tonen met `formatEuro()`. Datums als `yyyy-mm-dd` (gebruik `today()` voor de lokale datum) en tonen met `Intl` in `nl-NL`.
-8. **Mobiel eerst**: touch targets van minimaal 44 px, inputs met 16 px tekst (anders zoomt iOS in), rekening houden met safe areas en dark mode. Gebruik de CSS-variabelen uit `base.css` (`--accent`, `--surface`, `--text`, `--muted`, `--border` …) in plaats van vaste kleuren.
-9. **Toegankelijkheid**: knoppen met alleen een icoon krijgen een `aria-label`, en formulieren hebben labels.
-10. **Bestanden aanbieden** (export, rapport): via `saveFile()` uit `core/dom.js`, nooit met een eigen download-link.
-11. **CHANGELOG.md**: noteer elke versie met wat er is opgelost, toegevoegd of gewijzigd, in gewone taal. Staat het op de wishlist, haal het dan uit `WISHLIST.md`.
-
-## Testen (vóór elke push, voor zover relevant)
-
-- Lokaal: `python3 -m http.server 8080` → `http://localhost:8080`. Test in een headless browser (bijvoorbeeld Playwright) op een iPhone-formaat scherm, in light en dark mode.
-- Nieuwe kluis → items toevoegen → vergrendelen → ontgrendelen
-- Sync tussen twee apparaten, inclusief een gelijktijdige wijziging op beide (handmatig via de sync-knop, of vergrendelen)
-- Twee tabbladen tegelijk open: een wijziging in het ene verschijnt in het andere
-- Bestaande gegevens van de vorige versie laden (migratie)
-- Na de push: GitHub Pages is bijgewerkt en geïnstalleerde apps tonen "Nieuwe versie beschikbaar". Dat controleer ik zelf op mijn telefoon.
+## Testen
+- Voer relevante syntax- en automatische tests uit; test browsergedrag op mobiel formaat en light/dark mode waar mogelijk.
+- Test waar relevant: nieuwe kluis, toevoegen/bewerken/verwijderen, vergrendelen/ontgrendelen, migratie, back-upherstel, meerdere tabbladen, offline en sync tussen twee apparaten inclusief gelijktijdige wijzigingen.
+- Test nooit met de echte privé-datarepo of echte kluisgegevens.
+- Na merge/deploy controleert Geert zelf de geïnstalleerde app en praktische werking op zijn apparaten.

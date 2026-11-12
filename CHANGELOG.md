@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.0
+
+**Toegevoegd**
+- Blijvende, versleutelde verwijderadministratie die losstaat van de app-specifieke samenvoegfunctie.
+- Elk apparaat krijgt een ID en bevestigt bekende verwijderingen tijdens synchronisatie.
+- Oude back-ups behouden de actuele verwijdergeschiedenis; oude gegevens worden daardoor niet teruggezet.
+- Automatische tests voor verwijderingen, apparaatbevestigingen en herstel.
+
+**Veiligheid**
+- Een remote kluis die niet met de huidige sleutel kan worden gelezen, wordt bij back-upherstel niet blind overschreven.
+
 ## 1.4.2
 
 **Toegevoegd**

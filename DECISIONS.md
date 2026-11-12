@@ -30,3 +30,7 @@ Besluiten die een volgende sessie moet kennen. Oude besluiten pas je niet aan; e
 - **Besluit:** de koppelcode bevat alleen de GitHub-koppeling (met token), versleuteld met een pincode van 8 tekens. Het wachtwoord van de kluis vul je op het nieuwe apparaat zelf in.
 - **Waarom:** in Cryptotracker zat het wachtwoord erin, maar daar was het een apart sync-wachtwoord. In de template is het ook het wachtwoord van de app zelf; dat hoort niet in een code die je naar jezelf stuurt.
 
+
+### D8 – Verwijdergeschiedenis is blijvend (12 nov 2026, template 1.5.0)
+- **Besluit:** verwijderingen worden in `__pwaSync.deletions` bijgehouden, onafhankelijk van de app-specifieke `merge()`. Elk apparaat heeft een eigen ID en bevestigt verwijderingen die het heeft verwerkt. De graveyard wordt niet automatisch gewist. Een remote kluis die niet met de huidige sleutel kan worden gelezen, wordt bij herstel nooit blind overschreven.
+- **Waarom:** een oud/offline apparaat of een oude back-up mag verwijderde gegevens niet opnieuw introduceren. Opschonen kan pas na veilig apparaatbeheer.

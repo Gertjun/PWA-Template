@@ -2,7 +2,7 @@
 
 De **actuele stand**: versie, open punten en sessielog. Werk dit bij aan het eind van elke sessie (zie `CLAUDE.md`). Besluiten staan in `DECISIONS.md`, wensen in `WISHLIST.md`.
 
-Laatst bijgewerkt: 10 november 2026 · versie **1.4.0**
+Laatst bijgewerkt: 12 november 2026 · versie **1.5.0**
 
 ---
 
@@ -13,9 +13,13 @@ Zie `CLAUDE.md`.
 Basistemplate voor Geerts PWA's. Apps die erop gebouwd zijn: MW4 Camo Tracker, Games Backlog, Energieverbruik. Nieuwe apps starten met *Use this template*; de workflow *Nieuwe app instellen* vult naam, opslag-id en datapad in.
 
 ## 3. Open punten en bekende problemen
-- Nog geen.
+- Er is nog geen scherm om gekoppelde apparaten veilig af te melden. Tot dat bestaat, blijven apparaten actief.
+- De graveyard wordt bewust niet automatisch opgeschoond; veilige compactie volgt na implementatie van apparaatbeheer.
+- Herstel van een back-up met een andere kluissleutel wordt veilig geweigerd als de actuele remote kluis niet leesbaar is.
 
 ## 4. Sessielog (kort, nieuwste bovenaan)
+
+- **12 nov 2026:** 1.5.0: eerste generieke verwijderadministratie en apparaatregistratie in de versleutelde kluis; back-upherstel behoudt actuele verwijderhistorie. Zes automatische kern-tests toegevoegd.
 
 - **10 nov 2026:**
   - 1.4.0: vaste indeling voor alle apps: navigatie (`core/nav.js`), Instellingen als laatste scherm, kopbalk, koppelcode (`core/pair.js`) en bouwstenen (`core/ui.js`).

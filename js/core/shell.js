@@ -5,6 +5,7 @@
 import { APP } from '../config.js';
 import { app } from '../app.js';
 import * as vault from './vault.js';
+import { SYSTEM_KEY } from './deletions.js';
 import * as bio from './biometric.js';
 import { syncNow, UpdateRequiredError } from './sync.js';
 import { createClient } from './github.js';
@@ -402,10 +403,12 @@ async function autoBiometricUnlock() {
 
 async function afterUnlock({ skipSync = false } = {}) {
   session++;
+  await vault.captureDeletionHistory();
   const current = vault.getData();
   blocked = (current?.schema ?? 0) > SCHEMA_VERSION;
   if (!blocked) {
     const migrated = app.migrate(structuredClone(current));
+    if (current[SYSTEM_KEY] && !migrated[SYSTEM_KEY]) migrated[SYSTEM_KEY] = current[SYSTEM_KEY];
     if (JSON.stringify(migrated) !== JSON.stringify(current)) await vault.setData(migrated);
   }
 

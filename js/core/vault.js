@@ -14,6 +14,7 @@
 
 import { APP } from '../config.js';
 import * as c from './crypto.js';
+import { SYSTEM_KEY, collectDeletions, mergeSyncStates, registerDevice, acknowledgeDeletions, reconcileData, reconcileBackup } from './deletions.js';
 
 const P = APP.storagePrefix;
 export const KEYS = { vault: `${P}:vault`, device: `${P}:device`, sync: `${P}:sync` };
@@ -154,9 +155,11 @@ export async function restoreBackup(env, password) {
   const { key, plain } = await openEnvelope(env, password);
   const sameKey = await c.sameKey(key, dataKey);
   await flush();
-  save(KEYS.vault, env);
-  installEnvelope(env, key, plain);
+  // Bewaar de verwijdergeschiedenis van de huidige kluis vóór de back-up wordt geïnstalleerd.
+  const safePlain = reconcileBackup(plain, data);
+  installEnvelope(env, key, safePlain);
   updateSyncMeta({ dirty: true, keyDirty: true, force: true });
+  await persist({ reencrypt: true });
   return { sameKey };
 }
 
@@ -252,6 +255,62 @@ export function getSyncMeta() {
 }
 export const setSyncMeta = (meta) => save(KEYS.sync, meta);
 export const updateSyncMeta = (patch) => save(KEYS.sync, { ...getSyncMeta(), ...patch });
+
+
+const DEVICE_ID_KEY = `${P}:device-id`;
+export function getDeviceId() {
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if (!id) { id = crypto.randomUUID(); localStorage.setItem(DEVICE_ID_KEY, id); }
+  return id;
+}
+export async function captureDeletionHistory() {
+  requireUnlocked();
+  const deletions = collectDeletions(data);
+  const state = mergeSyncStates(data[SYSTEM_KEY], null);
+  const before = JSON.stringify(state.deletions);
+  Object.assign(state.deletions, deletions);
+  if (before !== JSON.stringify(state.deletions)) {
+    data = { ...data, [SYSTEM_KEY]: state }; revision++;
+    updateSyncMeta({ dirty: true }); await persist({ reencrypt: true });
+  }
+}
+export async function prepareSyncData() {
+  requireUnlocked();
+  await captureDeletionHistory();
+  const id = getDeviceId();
+  let state = registerDevice(data[SYSTEM_KEY], id);
+  Object.assign(state.deletions, collectDeletions(data));
+  state = acknowledgeDeletions(state, id);
+  if (JSON.stringify(state) !== JSON.stringify(data[SYSTEM_KEY] || null)) {
+    data = { ...data, [SYSTEM_KEY]: state }; revision++;
+    updateSyncMeta({ dirty: true }); await persist({ reencrypt: true });
+  }
+}
+export function reconcileRemoteData(remoteData, migrate) {
+  const raw = structuredClone(remoteData || {});
+  const state = mergeSyncStates(data?.[SYSTEM_KEY], raw[SYSTEM_KEY]);
+  Object.assign(state.deletions, collectDeletions(raw));
+  raw[SYSTEM_KEY] = state;
+  const migrated = migrate(structuredClone(raw)) || {};
+  const next = reconcileBackup(migrated, data);
+  next[SYSTEM_KEY] = acknowledgeDeletions(next[SYSTEM_KEY], getDeviceId());
+  return next;
+}
+export function mergeRemoteData(remoteData, migrate, appMerge) {
+  const raw = structuredClone(remoteData || {});
+  const state = mergeSyncStates(data?.[SYSTEM_KEY], raw[SYSTEM_KEY]);
+  Object.assign(state.deletions, collectDeletions(raw));
+  raw[SYSTEM_KEY] = state;
+  const migrated = migrate(structuredClone(raw)) || {};
+  const next = reconcileData(data, migrated, appMerge);
+  next[SYSTEM_KEY] = acknowledgeDeletions(next[SYSTEM_KEY], getDeviceId());
+  return next;
+}
+export function reconcileRestoredBackup(remoteData) {
+  const next = reconcileBackup(data, remoteData);
+  next[SYSTEM_KEY] = acknowledgeDeletions(next[SYSTEM_KEY], getDeviceId());
+  return next;
+}
 
 // ---------- Apparaatinstellingen (versleuteld, worden NIET gesynchroniseerd) ----------
 

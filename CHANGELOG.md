@@ -4,7 +4,8 @@
 
 **Toegevoegd**
 - Blijvende, versleutelde verwijderadministratie die losstaat van de app-specifieke samenvoegfunctie.
-- Elk apparaat krijgt een ID en bevestigt bekende verwijderingen tijdens synchronisatie.
+- Elk apparaat krijgt een ID en bevestigt bekende verwijderingen tijdens synchronisatie. In Instellingen kun je gekoppelde apparaten bekijken en andere apparaten veilig afmelden.
+- Verwijder-tombstones worden pas uit de normale collecties opgeruimd als alle actieve apparaten ze hebben bevestigd; de compacte graveyard blijft behouden.
 - Oude back-ups behouden de actuele verwijdergeschiedenis; oude gegevens worden daardoor niet teruggezet.
 - Automatische tests voor verwijderingen, apparaatbevestigingen en herstel.
 

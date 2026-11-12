@@ -13,8 +13,8 @@ Zie `CLAUDE.md`.
 Basistemplate voor Geerts PWA's. Apps die erop gebouwd zijn: MW4 Camo Tracker, Games Backlog, Energieverbruik. Nieuwe apps starten met *Use this template*; de workflow *Nieuwe app instellen* vult naam, opslag-id en datapad in.
 
 ## 3. Open punten en bekende problemen
-- Er is nog geen scherm om gekoppelde apparaten veilig af te melden. Tot dat bestaat, blijven apparaten actief.
-- De graveyard wordt bewust niet automatisch opgeschoond; veilige compactie volgt na implementatie van apparaatbeheer.
+- De graveyard blijft permanent bestaan; dit is bewust om verwijderde records ook na zeer oude back-ups te blokkeren.
+- De volledige browser- en twee-apparatentest moet nog worden uitgevoerd.
 - Herstel van een back-up met een andere kluissleutel wordt veilig geweigerd als de actuele remote kluis niet leesbaar is.
 
 ## 4. Sessielog (kort, nieuwste bovenaan)

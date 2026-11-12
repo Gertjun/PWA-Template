@@ -8,6 +8,7 @@ Basis voor installeerbare Progressive Web Apps op GitHub Pages, met:
 - **Offline** werken en **updates** via een "Bijwerken"-knop (service worker)
 - Automatisch vergrendelen, privacyscherm in de app-wisselaar, wachtwoord wijzigen, back-up en herstel, dark mode en iPhone-safe-areas
 - Veilig bij **meerdere tabbladen** en bij **verschillende app-versies** op je apparaten
+- Apparaatregistratie, bevestiging van verwijderingen en bescherming tegen terugzetten via oude back-ups
 - Geen frameworks, geen build-stap en geen externe libraries: alleen HTML, CSS en JavaScript-modules
 
 De meegeleverde demo, een lijstje met items, laat zien hoe alles samenwerkt. Voor een nieuwe app vervang je alleen `js/app.js` en `css/app.css` en pas je de configuratie aan.

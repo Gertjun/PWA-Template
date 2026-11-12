@@ -3,7 +3,7 @@
 ## Documentatie en repositorybeheer – 12 november 2026 (geen app-release)
 - Werkafspraken bijgewerkt: actuele main/branch/PR/CI controleren, wijzigingen via branches en PR's, geen directe push naar main en geen merge zonder expliciet akkoord.
 - Sessiestart en -afronding verduidelijkt; tests en resterende praktijktests moeten expliciet worden gerapporteerd.
-- Gedeelde kern vastgelegd als één beheerde bron met vastgepinde versies per app; distributiemechanisme blijft onderwerp van een proof-of-concept.
+- Gedeelde kern vastgelegd als één beheerde bron met vastgepinde versies per app; voorkeursrichting en gefaseerde invoering beschreven in docs/PWA-CORE-ARCHITECTUUR.md.
 - Geen app-code gewijzigd; app-versie blijft 1.4.2.
 
 ## 1.4.2

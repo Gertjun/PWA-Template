@@ -7,8 +7,8 @@ Besluiten die een volgende sessie moet kennen. Oude besluiten pas je niet aan; e
 - **Waarom:** eenvoudig te onderhouden voor iemand die geen fulltime ontwikkelaar is.
 
 ### D2 – Direct naar main pushen (okt 2026)
-- **Besluit:** Claude werkt in de app-repo en pusht rechtstreeks naar `main`, na lokaal testen.
-- **Waarom:** Geert koos snelheid boven een review via pull requests.
+- **Historisch besluit:** Claude werkte rechtstreeks op `main`, na lokaal testen.
+- **Status:** vervangen door D9. Dit besluit blijft staan voor de historie; het is niet meer van kracht.
 
 ### D3 – Eén data-repo voor alle apps (okt 2026)
 - **Besluit:** de versleutelde kluizen staan in één privé-repo (`Gertjun/SyncData`), met per app een eigen map.
@@ -19,18 +19,22 @@ Besluiten die een volgende sessie moet kennen. Oude besluiten pas je niet aan; e
 
 ### D5 – Vaste documentatieset per repo (10 nov 2026)
 - **Besluit:** elke app-repo heeft `README.md`, `CHANGELOG.md`, `WISHLIST.md`, `NOTES.md`, `DECISIONS.md` en `CLAUDE.md`, naar het voorbeeld van Cryptotracker.
-- **Waarom:** zo begint elke sessie met dezelfde, korte context in plaats van de hele chatgeschiedenis.
 
 ### D6 – Eén indeling voor alle apps (10 nov 2026, 1.4.0)
 - **Besluit:** navigatie zit in de kern: tabbalk onderin op de telefoon, tabbladen onder de kopbalk op de iPad rechtop (700–999 px breed en minstens 700 px hoog), inklapbare zijbalk vanaf 1000 px. Instellingen is altijd het laatste scherm, met een vast overzicht en een pagina per onderdeel. Linksboven icoon, naam en versie; rechtsboven synchroniseren en vergrendelen. Filters: chips op de telefoon, keuzelijst op iPad en laptop.
-- **Waarom:** elke app had zijn eigen navigatie en instellingen. De breakpoints komen uit Cryptotracker, de zijbalk uit Games Backlog, het instellingenmenu uit MW4.
-- **Niet gelijkgetrokken:** accentkleur, logo en de inhoud van de schermen; daaraan herken je de app.
 
 ### D7 – Koppelcode zonder kluiswachtwoord (10 nov 2026, 1.4.0)
 - **Besluit:** de koppelcode bevat alleen de GitHub-koppeling (met token), versleuteld met een pincode van 8 tekens. Het wachtwoord van de kluis vul je op het nieuwe apparaat zelf in.
-- **Waarom:** in Cryptotracker zat het wachtwoord erin, maar daar was het een apart sync-wachtwoord. In de template is het ook het wachtwoord van de app zelf; dat hoort niet in een code die je naar jezelf stuurt.
-
 
 ### D8 – Verwijdergeschiedenis is blijvend (12 nov 2026, template 1.5.0)
 - **Besluit:** verwijderingen worden in `__pwaSync.deletions` bijgehouden, onafhankelijk van de app-specifieke `merge()`. Elk apparaat heeft een eigen ID en bevestigt verwijderingen die het heeft verwerkt. De graveyard wordt niet automatisch gewist. Een remote kluis die niet met de huidige sleutel kan worden gelezen, wordt bij herstel nooit blind overschreven.
-- **Waarom:** een oud/offline apparaat of een oude back-up mag verwijderde gegevens niet opnieuw introduceren. Opschonen kan pas na veilig apparaatbeheer.
+- **Waarom:** een oud/offline apparaat of een oude back-up mag verwijderde gegevens niet opnieuw introduceren.
+
+### D9 – Branches, pull requests en expliciete merge-toestemming (12 nov 2026)
+- **Besluit:** elke afgebakende wijziging gebeurt op een feature- of fix-branch vanaf de actuele `main`. Wijzigingen worden via een PR aangeboden met testresultaten, risico's en resterende handmatige controles. Er wordt nooit rechtstreeks naar `main` gepusht en er wordt nooit gemerged zonder expliciet akkoord van Geert. Een verzoek om verder te werken is geen merge-toestemming.
+- **Vervangt:** D2.
+- **Waarom:** wijzigingen zijn controleerbaar, CI kan ze vooraf testen en Geert houdt de laatste beslissing over wat live gaat.
+
+### D10 – Gedeelde kern gecontroleerd verspreiden (12 nov 2026)
+- **Besluit:** generieke kerncode wordt niet blind per app gekopieerd. Totdat een centrale PWA-Core-repository bestaat, is PWA-Template de voorlopige referentie. Eerst vergelijken welke apps dezelfde kernversie gebruiken; daarna updates per app via eigen PR en tests verspreiden.
+- **Waarom:** voorkomt onbedoelde verschillen en regressies tussen apps.

@@ -19,7 +19,7 @@ Basistemplate voor Geerts PWA's. Apps die erop gebouwd zijn: MW4 Camo Tracker, G
 
 ## 4. Sessielog (kort, nieuwste bovenaan)
 
-- **12 nov 2026:** 1.5.0: eerste generieke verwijderadministratie en apparaatregistratie in de versleutelde kluis; back-upherstel behoudt actuele verwijderhistorie. Zes automatische kern-tests toegevoegd.
+- **12 nov 2026:** 1.5.0: generieke verwijderadministratie, apparaatregistratie en beheer in Instellingen; tombstones worden na alle bevestigingen opgeruimd, terwijl de graveyard behouden blijft. Acht automatische tests en JavaScript-syntaxiscontrole toegevoegd.
 
 - **10 nov 2026:**
   - 1.4.0: vaste indeling voor alle apps: navigatie (`core/nav.js`), Instellingen als laatste scherm, kopbalk, koppelcode (`core/pair.js`) en bouwstenen (`core/ui.js`).

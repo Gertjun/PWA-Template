@@ -722,7 +722,8 @@ function renderSyncDevices() {
           await vault.deactivateSyncDevice(device.id);
           renderSyncDevices();
           await runSync({ quiet: true });
-          toast('Apparaat afgemeld.', 'ok');
+          if (vault.getSyncMeta().dirty) toast('Afmelding lokaal opgeslagen. Synchronisatie volgt zodra je online bent.', 'error');
+          else toast('Apparaat afgemeld en gesynchroniseerd.', 'ok');
         } catch (err) {
           button.disabled = false;
           toast(err.message, 'error');

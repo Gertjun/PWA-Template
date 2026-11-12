@@ -403,10 +403,11 @@ async function autoBiometricUnlock() {
 
 async function afterUnlock({ skipSync = false } = {}) {
   session++;
-  await vault.captureDeletionHistory();
-  const current = vault.getData();
-  blocked = (current?.schema ?? 0) > SCHEMA_VERSION;
+  const initial = vault.getData();
+  blocked = (initial?.schema ?? 0) > SCHEMA_VERSION;
   if (!blocked) {
+    await vault.captureDeletionHistory();
+    const current = vault.getData();
     const migrated = app.migrate(structuredClone(current));
     if (current[SYSTEM_KEY] && !migrated[SYSTEM_KEY]) migrated[SYSTEM_KEY] = current[SYSTEM_KEY];
     if (JSON.stringify(migrated) !== JSON.stringify(current)) await vault.setData(migrated);

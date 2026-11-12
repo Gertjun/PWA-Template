@@ -4,7 +4,7 @@
 // - Alleen lokaal veranderd                           → uploaden
 // - Alleen op GitHub veranderd                        → downloaden
 // - Beide veranderd                                   → app.merge(local, remote), dan uploaden
-// - Back-up teruggezet (force)                        → lokale versie overschrijft GitHub
+// - Back-up teruggezet (force)                        → verwijdergeschiedenis van remote blijft behouden
 // - Gegevens op GitHub komen van een nieuwere app-versie → stoppen (UpdateRequiredError)
 // Gelijktijdige wijziging tijdens het synchroniseren → automatisch opnieuw proberen.
 

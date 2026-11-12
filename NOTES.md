@@ -18,9 +18,11 @@ De template bevat een generieke kern in `js/core/`. PWA-Template is voorlopig de
 - De graveyard blijft permanent bestaan; dit is bewust om verwijderde records ook na zeer oude back-ups te blokkeren.
 - De volledige browser- en twee-apparatentest van versie 1.5.0 moet nog worden uitgevoerd.
 - Herstel van een back-up met een andere kluissleutel wordt veilig geweigerd als de actuele remote kluis niet leesbaar is.
-- Centrale PWA-Core-repository en gecontroleerde update-workflow zijn nog ontwerpwerk. Eerste vergelijking: MW4-CAMO en Energieverbruik hebben dezelfde hashes voor de aanwezige kernbestanden; PWA-Template wijkt af in shell.js, sync.js en vault.js en heeft daarnaast deletions.js. Zie docs/SHARED-CORE.md.
+- Centrale PWA-Core-repository en gecontroleerde update-workflow zijn nog ontwerpwerk. Inventarisatie: MW4, Energieverbruik en Games Backlog hebben identieke hashes voor de 12 kern-/basebestanden; Template wijkt in PR #1 af in shell/sync/vault en voegt deletions.js toe. Cryptotracker en Vaste Lasten zijn monolithisch en gebruiken geen js/core/. Zie docs/SHARED-CORE.md.
 
 ## 4. Sessielog (kort, nieuwste bovenaan)
+
+- **12 nov 2026:** volledige repository-inventarisatie: MW4, Energieverbruik en Games Backlog delen dezelfde 12 core-/basebestanden; Template heeft afwijkingen in PR #1; Cryptotracker en Vaste Lasten zijn monolithische apps zonder js/core/. PR #1 CI is groen; praktijktest 1.5.0 nog open.
 
 - **12 nov 2026:** eerste vergelijking van de gedeelde kern: MW4-CAMO en Energieverbruik delen identieke hashes voor de aanwezige core-bestanden en base.css; Template heeft afwijkende shell/sync/vault en een extra deletions-module. Centrale kern nog niet aangemaakt.
 - **12 nov 2026:** werkinstructies gelijkgetrokken: branch/PR-werkwijze, expliciete merge-toestemming, start- en eindcontrole, onderscheid tussen app-releases en documentatie-only wijzigingen. Besluiten D9 en D10 toegevoegd. Nog niet gemerged.

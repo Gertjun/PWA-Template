@@ -9,6 +9,7 @@ Basistemplate voor Geerts PWA's. MW4 Camo Tracker en Energieverbruik gebruiken a
 
 ## 2. Open punten
 - **PR #1 – veilige verwijdergeschiedenis en apparaatregistratie (beoogde versie 1.5.0):** open op feature/safe-tombstone-sync. Laatst bekende head: e418adc591da31c3a5e576a5eecce2d8cdca6d60. Eerdere Actions-runs waren succesvol; controleer checks opnieuw op actuele head. Volledige browser- en twee-apparatentest moet nog worden uitgevoerd. Niet mergen zonder expliciet akkoord.
+- **PR #2 – werkafspraken en kernbeheer:** open op docs/session-workflow-and-core-governance, head 57ffffd2efe0be8a4d76d9a5ce48fb10571a1721. Documentatie-only; er is nog geen Actions-workflow op main om deze PR automatisch te testen. PR #1 bevat de eerste testworkflow. Niet mergen zonder expliciet akkoord.
 - **Centrale PWA-Core:** architectuur in onderzoek. Doel: één bron voor generieke kerncode, versiebeheer en gecontroleerde verspreiding. Nog geen centrale repository of distributiemechanisme ingericht.
 - **Cryptotracker:** beoordelen welke onderdelen veilig kunnen worden overgezet; niet aannemen dat de structuur identiek is.
 

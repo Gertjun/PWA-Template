@@ -1,143 +1,123 @@
-# PWA-template
+# PWA-Template
 
-Basis voor installeerbare Progressive Web Apps op GitHub Pages, met:
+Officiële startbasis voor nieuwe, installeerbare Progressive Web Apps op GitHub Pages. De template levert de app-schil, een demo-app en de lokale gedeelde kernbestanden.
 
-- **Versleutelde opslag** op het apparaat (AES-256-GCM, sleutel afgeleid van je wachtwoord met PBKDF2)
-- **Synchronisatie** tussen apparaten via één versleuteld bestand in je eigen **private** GitHub-repo
-- **Ontgrendelen met Face ID / Touch ID / Windows Hello / passkey** (WebAuthn PRF), met wachtwoord als terugval
-- **Offline** werken en **updates** via een "Bijwerken"-knop (service worker)
-- Automatisch vergrendelen, privacyscherm in de app-wisselaar, wachtwoord wijzigen, back-up en herstel, dark mode en iPhone-safe-areas
-- Veilig bij **meerdere tabbladen** en bij **verschillende app-versies** op je apparaten
-- Apparaatregistratie, bevestiging van verwijderingen en bescherming tegen terugzetten via oude back-ups
-- Geen frameworks, geen build-stap en geen externe libraries: alleen HTML, CSS en JavaScript-modules
+## Architectuur in het kort
 
-De meegeleverde demo, een lijstje met items, laat zien hoe alles samenwerkt. Voor een nieuwe app vervang je alleen `js/app.js` en `css/app.css` en pas je de configuratie aan.
+De gedeelde kern wordt centraal onderhouden in [PWA-Core](https://github.com/Gertjun/PWA-Core). De browser laadt de kern niet rechtstreeks uit PWA-Core: de JavaScript-modules en basis-CSS staan lokaal in de app-repository en worden vanaf de eigen GitHub Pages-origin geladen.
 
----
+PWA-Core v1.0.0 is gepubliceerd. De core-bestanden in deze template zijn afkomstig uit de templatebroncommit `0f538f8acf40d086df38e9bc4ed2cd875925c569`, die als bron in het PWA-Core-manifest is vastgelegd. De formele app-pinbestanden en de automatische distributie-/updateworkflow zijn nog niet in deze template-setup geïntegreerd. Behandel de aanwezigheid van lokale core-bestanden dus niet als bewijs dat een nieuwe app al een gevalideerd `pwa-core.lock.json` heeft. Dit wordt als afzonderlijke integratiestap opgepakt.
+
+**Belangrijk:** pas generieke kernbestanden niet zelfstandig in deze repository aan als app-specifieke oplossing. Een generieke wijziging hoort thuis in PWA-Core en wordt daarna gecontroleerd via aparte PR's naar ontvangende apps verspreid.
+
+## Wat bevat de template?
+
+- Versleutelde lokale kluis (AES-256-GCM; PBKDF2-SHA256 voor wachtwoordafleiding).
+- Synchronisatie tussen apparaten via één versleuteld bestand in een eigen private GitHub-repository.
+- Ontgrendelen met Face ID / Touch ID / Windows Hello / passkey (WebAuthn PRF), met wachtwoord als terugval.
+- Offline werking en gecontroleerde updates via de service worker.
+- Automatisch vergrendelen, privacyscherm, back-up en herstel, dark mode en iPhone-safe-areas.
+- Bescherming bij meerdere tabbladen en verschillende app-versies.
+- Apparaatregistratie, bevestiging van verwijderingen en bescherming tegen terugzetten via oude back-ups.
+- Geen framework, build-stap, CDN-script of externe runtime-library.
 
 ## Structuur
 
 ```
-index.html              Schil: setup-, vergrendel-, app- en instellingenscherm
-manifest.webmanifest    Naam, kleuren en iconen voor installatie       ← per app
-sw.js                   Service worker (offline + updates)             ← VERSION per release
-css/base.css            Basisstijl van de template
-css/app.css             Stijl van de app                               ← per app
-js/config.js            Naam, versie, opslag-prefix, datapad, timing   ← per app
-js/app.js               De app zelf: datamodel, merge, scherm          ← per app
+index.html              App-schil en schermen
+manifest.webmanifest    Naam, kleuren en installatie-iconen
+sw.js                   App-eigen service worker en PRECACHE
+css/base.css            Gedeelde basisstijl (PWA-Core)
+css/app.css             App-specifieke stijl
+js/config.js            Appnaam, versie, opslagprefix, datapad en timing
+js/app.js               App-eigen datamodel, merge en schermen
 js/main.js              Opstarten
-js/core/                De template-kern (niet aanpassen per app)
-  shell.js              Schermen, instellingen, sync, auto-lock, privacy, tabbladen, updates
-  vault.js              Versleutelde kluis + lokale opslag (met opslagwachtrij)
-  crypto.js             Web Crypto-functies
-  biometric.js          Face ID / passkey (WebAuthn PRF)
-  github.js             GitHub Contents API-client
-  sync.js               Sync-logica (upload, download, samenvoegen, versiebewaking)
-  records.js            Hulpfuncties voor records (id, updatedAt, verwijderen, opruimen)
-  dom.js                h(), formatEuro(), parseEuro(), today(), saveFile()
-icons/                  App-iconen (icon.svg is de bron)                ← per app
-docs/CLAUDE-INSTRUCTIES.md   Instructies om in je Claude-project te plakken
-docs/STARTPROMPT.md     Eerste bericht voor een nieuw app-project
-CHANGELOG.md            Wijzigingen per versie
-tools/setup.mjs         Stelt een nieuwe app in (naam, kleur, iconen)
-.github/workflows/setup.yml  Draait setup.mjs automatisch na "Use this template"
+js/core/                Lokale kopie van de gedeelde PWA-Core-modules
+icons/                  App-iconen
+tools/setup.mjs         Nieuwe app instellen
+.github/workflows/      Setupworkflow voor Use this template
+docs/                   Projectinstructies en architectuurdocumentatie
 ```
 
-## Eenmalig: de template-repo klaarzetten
+De service worker blijft app-eigendom. De core-allowlist bevat geen volledige `sw.js`; de app beheert zelf zijn versie, scope en precache.
 
-1. Maak op GitHub een repo met de naam **`pwa-template`**. De automatische setup slaat een repo met precies deze naam over, zodat de template zelf nooit wordt omgebouwd.
-2. Upload alle bestanden, **inclusief de verborgen map `.github`**. Op een Mac zie je die in Finder pas na ⌘ + Shift + . (punt).
-3. Settings → vink **Template repository** aan.
+## Een nieuwe app starten
 
-## Nieuwe app starten
+1. Open deze repository en kies **Use this template** → **Create a new repository**.
+2. Kies een duidelijke reponaam, bijvoorbeeld `energieverbruik`.
+3. Wacht tot de workflow **Nieuwe app instellen** klaar is. Deze stelt onder meer de naam, opslagprefix, datapad, app-versie, manifest en titels in en probeert GitHub Pages te activeren.
+4. Controleer de workflow-samenvatting. Als Pages niet automatisch is ingeschakeld: Settings → Pages en configureer de door de repository gebruikte deploymethode.
+5. Vul de projectinstructies uit `docs/CLAUDE-INSTRUCTIES.md` aan en start met `docs/STARTPROMPT.md`.
+6. Controleer vóór ingebruikname de core-release-identificatie en pinintegratie. De huidige template-setup maakt nog niet automatisch een formeel `pwa-core.lock.json`.
+7. Test de app online en offline en voer de relevante beveiligings- en herstelcontroles uit voordat echte gegevens worden gebruikt.
 
-1. Ga naar de template-repo → **Use this template** → *Create a new repository*. Kies een reponaam zoals `vaste-lasten`; de app heet dan "Vaste Lasten".
-2. **Wacht ongeveer een minuut.** De workflow *Nieuwe app instellen* (tabblad Actions) zet dan automatisch:
-   - naam, korte naam, `storagePrefix` en datapad (afgeleid van de reponaam),
-   - versie `1.0.0` in `config.js` en `sw.js`,
-   - manifest, `<title>` en de iPhone-titel,
-   - een lege `CHANGELOG.md`,
-   - en probeert GitHub Pages aan te zetten.
-3. **Eigen naam, kleur of icoonletter?** Ga naar Actions → *Nieuwe app instellen* → **Run workflow**, vul de velden in en vink *Opnieuw instellen* aan. De kleur en de iconen (alle formaten) worden dan ook gemaakt.
-4. **GitHub Pages**: de samenvatting van de workflow laat zien of dit gelukt is. Zo niet, dan is het één klik: Settings → Pages → *Deploy from a branch* → `main` / `(root)` → Save.
-5. **De app bouwen** doe je met Claude: maak een Claude-project, plak `docs/CLAUDE-INSTRUCTIES.md` in de instructies en vul de reponaam in. Claude werkt dan direct in de repo (`js/app.js` en `css/app.css`), test lokaal en pusht naar `main`. Begin het gesprek met de prompt uit `docs/STARTPROMPT.md`. Gebruikt de app een externe API, dan moet het domein in `connect-src` van de CSP in `index.html`; dat staat in de instructies voor Claude.
-6. **Op je iPhone installeren**: open `https://<gebruiker>.github.io/<repo>/` in Safari → Deel → *Zet op beginscherm*.
+## App-specifieke ontwikkeling
 
-> **Workflow faalt bij "Wijzigingen opslaan"?** Zet dan in de nieuwe repo Settings → Actions → General → *Workflow permissions* op **Read and write permissions** en start de workflow opnieuw via Run workflow.
-
-> **Liever lokaal?** `npm install --no-save --prefix tools sharp@0.33.5` en daarna `APP_NAME="Mijn App" APP_COLOR="#0f766e" ICON_TEXT="M" node tools/setup.mjs`. Zie de uitleg bovenin `tools/setup.mjs`.
-
-> **Waarom een unieke `storagePrefix`?** Al je apps op `<gebruiker>.github.io` delen dezelfde "origin" en daarmee dezelfde localStorage. Zonder unieke prefix overschrijven ze elkaars gegevens. De setup gebruikt daarom de reponaam. Wijzig de prefix niet meer zodra de app in gebruik is.
-
-## Configuratie (`js/config.js`)
-
-| Instelling | Standaard | Betekenis |
-|---|---|---|
-| `autoLockMinutes` | 5 | Vergrendelen na inactiviteit of op de achtergrond (0 = uit) |
-| `syncDelaySeconds` | 20 | Wachttijd na de laatste wijziging voordat er gesynchroniseerd wordt. Zo worden meerdere wijzigingen één commit. Bij vergrendelen of het verlaten van de app gebeurt het direct. |
-| `minPasswordLength` | 12 | Minimale lengte voor nieuwe wachtwoorden |
-| `kdfIterations` | 600.000 | PBKDF2-iteraties |
-
-## De app bouwen (`js/app.js`)
+Vervang de demo in `js/app.js` en `css/app.css`. De app exporteert `app` met minimaal:
 
 ```js
 export const app = {
-  schemaVersion: 1,                                            // ophogen bij elke modelwijziging
-  initialData()        { return { schema: 1, items: [] }; },  // nieuwe kluis
-  migrate(data)        { /* oude schema's ombouwen + opruimen */ return data; },
-  merge(local, remote) { /* twee versies samenvoegen */ },
-  render(root, ctx)    { /* scherm opbouwen in root */ },
+  schemaVersion: 1,
+  screens: [],
+  initialData() { return { schema: 1 }; },
+  migrate(data) { return data; },
+  merge(local, remote) { /* behoud gegevens aan beide kanten */ },
+  render(root, ctx) { /* teken het actieve scherm */ },
 };
 ```
 
-- `ctx.data` bevat de huidige gegevens (alleen lezen).
-- `await ctx.update(d => { ... })` wijzigt de gegevens. Wijzigingen lopen één voor één, worden versleuteld opgeslagen, opnieuw getoond en daarna gesynchroniseerd.
-- `ctx.toast(tekst, 'ok' | 'error')` en `ctx.confirm(vraag)`.
-- Bouw elementen met `h('div', { class: 'card' }, ...)` uit `core/dom.js`. Tekst gaat daarbij altijd veilig via `textContent`.
-- Lijsten met records beheer je met `core/records.js`: `newRecord`, `updateById`, `removeById` (maakt een "tombstone"), `alive`, `mergeCollections` en `purgeTombstones`. Zo werkt samenvoegen tussen apparaten vanzelf.
-- Bedragen: `parseEuro('12,50')` → `1250` (centen) en `formatEuro(1250)` → `€ 12,50`.
-- Bestanden aanbieden: `saveFile(naam, tekst, type)`. In de geïnstalleerde app op je telefoon gaat dat via het deelmenu, anders als download.
+- Lees gegevens via `ctx.data`; muteer deze niet rechtstreeks.
+- Wijzig gegevens uitsluitend via `await ctx.update(d => { ... })`.
+- Gebruik de contextmethodes voor navigatie, meldingen en instellingen.
+- Behoud onbekende velden, waaronder `__pwaSync`, in `migrate` en `merge`.
+- Gebruik de gedeelde recordhelpers voor record-ID's, timestamps en verwijdermarkeringen.
+- Bouw geen eigen generieke navigatie, instellingen of synchronisatie die al door de schil worden geleverd.
 
-### Wat de schil voor je bewaakt
+## Configuratie (`js/config.js`)
 
-- **Meerdere tabbladen**: wijzigt een ander tabblad de kluis, dan laadt dit tabblad de nieuwe stand in.
-- **Nieuwere gegevens dan de app**: heeft de data een hoger `schema` dan `app.schemaVersion` (er draait ergens al een nieuwere versie), dan toont de app "Update nodig". Bekijken kan dan nog, maar bewerken en synchroniseren staan stil tot je hebt bijgewerkt.
-- **Privacy**: zodra de app naar de achtergrond gaat, wordt de inhoud afgedekt, zodat hij niet zichtbaar is in de app-wisselaar.
-- **Opslag**: de app vraagt de browser om de opslag niet op te ruimen (`navigator.storage.persist()`).
+| Instelling | Betekenis |
+|---|---|
+| `name` | Zichtbare appnaam |
+| `version` | Appversie; staat los van de PWA-Core-versie |
+| `storagePrefix` | Unieke, blijvende lokale opslagnamespace; na ingebruikname niet wijzigen |
+| `defaultDataPath` | Pad van de versleutelde kluis in de private data-repository |
+| `autoLockMinutes` | Automatisch vergrendelen |
+| `syncDelaySeconds` | Wachttijd na laatste wijziging voordat sync start |
+| `minPasswordLength` | Minimale lengte voor nieuwe wachtwoorden |
+| `kdfIterations` | PBKDF2-iteraties |
 
 ## Synchronisatie instellen
 
-1. Maak een **private** repo voor data, bijvoorbeeld `pwa-data`. Eén repo voor al je apps volstaat, met per app een eigen map.
-2. Maak een **fine-grained personal access token**: GitHub → Settings → Developer settings → Fine-grained tokens.
-   - *Repository access*: alleen je data-repo
-   - *Permissions*: **Contents: Read and write** (de rest blijft *No access*)
-   - Kies een vervaldatum en zet een herinnering om het token te vernieuwen.
-3. In de app: Instellingen → Synchronisatie → eigenaar, repo en token invullen → *Opslaan en testen*.
-4. Op een tweede apparaat kies je bij de eerste start **Bestaande koppelen** en vul je dezelfde gegevens en hetzelfde wachtwoord in.
+1. Maak een private GitHub-repository voor de versleutelde data.
+2. Maak een fine-grained personal access token met toegang tot alleen die repository en alleen de benodigde Contents-rechten.
+3. Vul eigenaar, repository, branch, datapad en token in via de app-instellingen.
+4. Test synchronisatie en koppel daarna eventueel een tweede apparaat.
+
+Het token wordt lokaal versleuteld opgeslagen en niet gesynchroniseerd. Deel of commit het token nooit. De ontwikkelworkflow benadert de data-repository, kluisbestanden of tokens niet.
 
 ## Beveiligingsmodel
 
-| Wat | Hoe |
+| Onderdeel | Werking |
 |---|---|
-| Gegevens | AES-256-GCM met een willekeurige datasleutel |
-| Datasleutel | Ingepakt met PBKDF2-SHA256 (600.000 iteraties) van je wachtwoord, minimaal 12 tekens |
-| Face ID / passkey | De passkey levert via de PRF-extensie een geheim op, waaruit (via HKDF) een sleutel wordt afgeleid die de datasleutel inpakt. Dit wordt per apparaat ingesteld. |
-| Op GitHub | Alleen het versleutelde bestand. GitHub en iedereen met toegang tot de repo zien geen inhoud. |
-| GitHub-token | Versleuteld met de datasleutel op het apparaat en wordt nooit gesynchroniseerd |
-| Vergrendelen | Openstaande wijzigingen worden eerst gesynchroniseerd, daarna wordt de sleutel uit het geheugen gewist |
-| Wachtwoord vergeten | Er is **geen herstel**. Bewaar het in je wachtwoordmanager. |
+| Gegevens | AES-256-GCM |
+| Wachtwoordafleiding | PBKDF2-SHA256 met de ingestelde iteraties |
+| Passkey | WebAuthn PRF, met lokaal afgeleide sleutel |
+| GitHub-opslag | Alleen het versleutelde kluisbestand |
+| Token | Lokaal versleuteld; nooit in de repository of syncdata |
+| Offline | Lokale bestanden en service-worker-cache |
+| Herstel | Back-up/herstel volgens de app-contracten; wachtwoordherstel is niet mogelijk zonder beschikbare sleutel |
 
-Het kluisbestand staat op GitHub. Lekt het ooit, dan kan iemand offline wachtwoorden proberen. Een lange wachtzin van een paar losse woorden is daarom je belangrijkste bescherming.
+Een passkey is apparaat-/credentialgebonden. Een andere passkey levert niet vanzelf hetzelfde PRF-geheim op. Houd de wachtwoordterugval en back-upinstructies beschikbaar.
 
-Face ID via PRF werkt in Safari op iOS/macOS 18+ en in recente versies van Chrome en Edge. Waar het niet werkt, toont de app alleen het wachtwoord.
+## Versies en updates
 
-## Een nieuwe versie uitbrengen
+- Appversie: verhoog `version` in `js/config.js` en `VERSION` in `sw.js` gelijk wanneer runtimecode wijzigt.
+- Nieuwe runtimebestanden: voeg ze toe aan de app-eigen `PRECACHE`.
+- Datamodel: verhoog `schemaVersion` en schrijf een compatibele migratie.
+- Core: wijzig generieke code via PWA-Core; distribueer een gekozen release via een afzonderlijke app-branch en PR.
+- Merge: nooit automatisch en nooit zonder expliciet akkoord van de eigenaar.
 
-1. Verhoog `version` in `js/config.js` **en** `VERSION` in `sw.js` naar hetzelfde nummer. Bij een verschil toont *Instellingen → Over* een waarschuwing.
-2. Heb je een nieuw bestand toegevoegd? Zet het in `PRECACHE` in `sw.js`.
-3. Heb je het datamodel gewijzigd? Verhoog `schemaVersion` en schrijf een migratie.
-4. Noteer de wijziging in `CHANGELOG.md`.
-5. Pushen. Geïnstalleerde apps tonen daarna "Nieuwe versie beschikbaar → Bijwerken".
+Documentatie-only wijzigingen verhogen de appversie niet.
 
 ## Lokaal testen
 
@@ -146,8 +126,12 @@ python3 -m http.server 8080
 # open http://localhost:8080
 ```
 
-Service workers en Web Crypto werken alleen via `https://` of `localhost`.
+Service workers en Web Crypto werken alleen via HTTPS of localhost.
 
-## Template-verbeteringen terugzetten
+## Documentatie
 
-Pas je iets in `js/core/` aan dat voor al je apps nuttig is? Zet het dan ook terug in deze template-repo, en neem het daarna over in je andere apps door de map `js/core/` te kopiëren. Houd `core/` daarom vrij van app-specifieke code.
+- `docs/CLAUDE-INSTRUCTIES.md`: projectwerkwijze en technische regels.
+- `docs/STARTPROMPT.md`: startprompt voor een nieuw app-project.
+- `docs/PWA-CORE-ARCHITECTUUR.md`: relatie tussen template en centrale kern.
+- `docs/PWA-CORE-CONTRACTS.md`: technische contracten.
+- `docs/SHARED-CORE.md`: historische inventarisatie en migratieachtergrond.

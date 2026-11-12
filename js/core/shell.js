@@ -5,6 +5,7 @@
 import { APP } from '../config.js';
 import { app } from '../app.js';
 import * as vault from './vault.js';
+import { SYSTEM_KEY, mergeSyncStates } from './deletions.js';
 import * as bio from './biometric.js';
 import { syncNow, UpdateRequiredError } from './sync.js';
 import { createClient } from './github.js';
@@ -402,10 +403,13 @@ async function autoBiometricUnlock() {
 
 async function afterUnlock({ skipSync = false } = {}) {
   session++;
-  const current = vault.getData();
-  blocked = (current?.schema ?? 0) > SCHEMA_VERSION;
+  const initial = vault.getData();
+  blocked = (initial?.schema ?? 0) > SCHEMA_VERSION;
   if (!blocked) {
+    await vault.captureDeletionHistory();
+    const current = vault.getData();
     const migrated = app.migrate(structuredClone(current));
+    if (current[SYSTEM_KEY]) migrated[SYSTEM_KEY] = mergeSyncStates(current[SYSTEM_KEY], migrated[SYSTEM_KEY]);
     if (JSON.stringify(migrated) !== JSON.stringify(current)) await vault.setData(migrated);
   }
 
@@ -563,6 +567,7 @@ async function runSync({ quiet = false } = {}) {
     if (!vault.isUnlocked()) return;
     if (result === 'downloaded' || result === 'merged') render();
     updateSyncIndicator();
+    renderSyncDevices();
     if (!quiet) toast(SYNC_MESSAGES[result], 'ok');
   } catch (err) {
     if (!vault.isUnlocked()) return;
@@ -682,6 +687,54 @@ function showSettingsPage(page) {
   $('#settings-title')?.focus({ preventScroll: true });
 }
 
+
+function renderSyncDevices() {
+  const host = $('#sync-devices');
+  const section = $('#sync-devices-section');
+  if (!host || !section || !vault.isUnlocked() || !isSyncConfigured()) {
+    if (section) section.hidden = true;
+    return;
+  }
+  section.hidden = false;
+  const devices = vault.getSyncDevices();
+  const rows = devices.map((device) => {
+    const label = device.current ? 'Dit apparaat' : `Apparaat ${device.id.slice(0, 8)}`;
+    const status = device.deactivatedAt
+      ? `Afgemeld op ${formatWhen(device.deactivatedAt)}`
+      : device.lastSeenAt ? `Laatst gezien ${formatWhen(device.lastSeenAt)}` : 'Nog niet gesynchroniseerd';
+    const acknowledgements = device.deletionCount
+      ? `Verwijderingen bevestigd: ${device.acknowledgedCount} van ${device.deletionCount}`
+      : 'Geen openstaande verwijderbevestigingen';
+    const details = h('div', {},
+      h('strong', {}, label),
+      h('p', { class: 'hint' }, status),
+      h('p', { class: 'hint' }, acknowledgements));
+    if (device.current) return h('div', { class: 'setting-line' }, details, h('span', { class: 'hint' }, device.deactivatedAt ? 'Afgemeld' : 'Dit apparaat'));
+    if (device.deactivatedAt) return h('div', { class: 'setting-line' }, details, h('span', { class: 'hint' }, 'Afgemeld'));
+    const button = h('button', {
+      class: 'btn btn-ghost',
+      type: 'button',
+      onClick: async () => {
+        const warning = `Apparaat ${device.id.slice(0, 8)} afmelden? Het kan daarna niet meer synchroniseren. Niet-gesynchroniseerde wijzigingen op dat apparaat gaan niet mee. Je kunt het later opnieuw koppelen als een nieuw apparaat door dit apparaat eerst te wissen en opnieuw te koppelen.`;
+        if (!window.confirm(warning)) return;
+        button.disabled = true;
+        try {
+          await vault.deactivateSyncDevice(device.id);
+          renderSyncDevices();
+          await runSync({ quiet: true });
+          if (vault.getSyncMeta().dirty) toast('Afmelding lokaal opgeslagen. Synchronisatie volgt zodra je online bent.', 'error');
+          else toast('Apparaat afgemeld en gesynchroniseerd.', 'ok');
+        } catch (err) {
+          button.disabled = false;
+          toast(err.message, 'error');
+        }
+      },
+    }, 'Afmelden');
+    return h('div', { class: 'setting-line' }, details, button);
+  });
+  host.replaceChildren(...rows);
+}
+
 function fillSettings() {
   const f = $('#form-github');
   const gh = settings?.github;
@@ -701,6 +754,7 @@ function fillSettings() {
   setText('#sum-about', `Versie ${APP.version}`);
   ['#github-error', '#password-error', '#restore-error'].forEach((s) => showError(s, ''));
   updateSyncIndicator();
+  renderSyncDevices();
   updateBioUI();
 }
 
@@ -903,7 +957,10 @@ function wireSettings() {
       if (blocked) {
         showUpdateRequired();
       } else {
-        await vault.setData(app.migrate(structuredClone(vault.getData())));
+        const restoredData = vault.getData();
+        const migrated = app.migrate(structuredClone(restoredData));
+        migrated[SYSTEM_KEY] = mergeSyncStates(restoredData[SYSTEM_KEY], migrated[SYSTEM_KEY]);
+        await vault.setData(migrated);
       }
       restoreForm.reset();
       render();

@@ -15,31 +15,34 @@ Repo: [eigenaar/reponaam]
 Idee: [wat moet de app doen, voor wie, en welk probleem lost hij op, in een paar zinnen]
 Must-haves voor de eerste versie: [lijstje]
 Later of misschien: [lijstje]
-Voorbeelden of inspiratie: [optioneel: een bestaande app, een Excel-lijst, een schermafbeelding]
+Voorbeelden of inspiratie: [optioneel, bijvoorbeeld een bestaande app of Excel-lijst]
 
 Werk in deze volgorde. Na stap 3 stop je en wacht je op mijn akkoord.
 
-1. Controle. Koppel de repo en controleer of de setup-workflow heeft gedraaid:
-   - in js/config.js: de naam, een storagePrefix die niet 'mijn-app' is, het datapad, en versie 1.0.0 (ook in sw.js);
-   - het manifest, de titels en de iconen.
-   Controleer ook of GitHub Pages live is. Herstel wat je zelf kunt, en meld wat ik moet doen.
+1. Controle:
+   - Controleer de actuele GitHub-repo, main, branches en openstaande PR's.
+   - Controleer of de setup-workflow heeft gedraaid: naam, storagePrefix, datapad, versie in config.js en sw.js, manifest, titels en iconen.
+   - Controleer of GitHub Pages live is. Herstel zelf wat veilig kan; meld wat ik moet doen.
+   - Lees de projectdocumentatie en noteer open punten en relevante besluiten.
 
-2. Vragen. Stel maximaal 5 gerichte vragen over wat nog onduidelijk is, zoals gegevens, berekeningen, schermen en randgevallen. Kies voor de rest zelf verstandige standaarden en zeg welke.
+2. Vragen. Stel maximaal 5 gerichte vragen over wat nog onduidelijk is. Kies voor de rest verstandige standaarden en benoem die.
 
 3. Voorstel:
    - het datamodel: collecties, velden en typen;
-   - de schermen en de navigatie, mobiel eerst, met een korte schets per scherm in tekst;
+   - de schermen en navigatie, mobiel eerst;
    - wat in versie 1.0 komt en wat later;
-   - externe API's (voor de CSP), privacy- of rekenrisico's, en de keuzes die je voor me hebt gemaakt;
-   - een ingevuld blok "Over deze app", zodat ik het in de projectinstructies kan plakken.
+   - externe API's, privacy- en rekenrisico's;
+   - een ingevuld blok "Over deze app" voor de projectinstructies.
 
 4. Bouwen, na mijn akkoord:
-   - vervang de demo in js/app.js en css/app.css (schema 1, en een merge voor elke collectie);
-   - test lokaal volgens de instructies;
-   - werk CHANGELOG.md bij voor 1.0.0 en push naar main.
+   - vervang de demo in js/app.js en css/app.css;
+   - test volgens de projectinstructies;
+   - werk versie, CHANGELOG.md en WISHLIST.md bij;
+   - maak een feature-branch en PR. Push niet rechtstreeks naar main en merge niet zonder mijn expliciete akkoord.
 
-5. Afronding. Vertel me:
-   - hoe ik de app op mijn iPhone installeer, sync instel en Face ID aanzet;
-   - wat ik daarna als eerste moet uitproberen;
-   - welke 3 uitbreidingen logisch zijn als volgende stap.
+5. Afronding:
+   - werk NOTES.md en eventueel DECISIONS.md bij;
+   - vermeld testresultaten, resterende handmatige controles en de PR-link;
+   - leg uit hoe ik de app installeer, sync instel en Face ID aanzet;
+   - geef drie logische uitbreidingen voor later.
 ```

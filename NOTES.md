@@ -18,10 +18,11 @@ De template bevat een generieke kern in `js/core/`. PWA-Template is voorlopig de
 - De graveyard blijft permanent bestaan; dit is bewust om verwijderde records ook na zeer oude back-ups te blokkeren.
 - De volledige browser- en twee-apparatentest van versie 1.5.0 moet nog worden uitgevoerd.
 - Herstel van een back-up met een andere kluissleutel wordt veilig geweigerd als de actuele remote kluis niet leesbaar is.
-- Centrale PWA-Core-repository en gecontroleerde update-workflow zijn nog ontwerpwerk; eerst de kernbestanden van de bestaande apps vergelijken.
+- Centrale PWA-Core-repository en gecontroleerde update-workflow zijn nog ontwerpwerk. Eerste vergelijking: MW4-CAMO en Energieverbruik hebben dezelfde hashes voor de aanwezige kernbestanden; PWA-Template wijkt af in shell.js, sync.js en vault.js en heeft daarnaast deletions.js. Zie docs/SHARED-CORE.md.
 
 ## 4. Sessielog (kort, nieuwste bovenaan)
 
+- **12 nov 2026:** eerste vergelijking van de gedeelde kern: MW4-CAMO en Energieverbruik delen identieke hashes voor de aanwezige core-bestanden en base.css; Template heeft afwijkende shell/sync/vault en een extra deletions-module. Centrale kern nog niet aangemaakt.
 - **12 nov 2026:** werkinstructies gelijkgetrokken: branch/PR-werkwijze, expliciete merge-toestemming, start- en eindcontrole, onderscheid tussen app-releases en documentatie-only wijzigingen. Besluiten D9 en D10 toegevoegd. Nog niet gemerged.
 - **12 nov 2026:** 1.5.0: generieke verwijderadministratie, apparaatregistratie en beheer in Instellingen; tombstones worden na alle bevestigingen opgeruimd, terwijl de graveyard behouden blijft. Acht automatische tests en JavaScript-syntaxiscontrole toegevoegd. Browser- en twee-apparatentest open.
 

@@ -1,76 +1,78 @@
-# Architectuurvoorstel: centrale PWA-Core
+# PWA-Template en PWA-Core – architectuur en status
 
-Status: implementatierichting. De repository `Gertjun/PWA-Core` is aangemaakt; initiële extractie, releasebeheer en distributie moeten nog worden ingericht en bewezen.
+## Actuele status
+
+PWA-Core v1.0.0 is de eerste stabiele release en is gepubliceerd via Git-tag `v1.0.0`. De release bevat `core-manifest.json` en 13 allowlisted bestanden: 12 JavaScript-modules onder `js/core/` en `css/base.css`.
+
+PWA-Template blijft de officiële startbasis voor nieuwe apps. De gedeelde kern wordt echter centraal onderhouden in PWA-Core. De browser laadt de core-bestanden lokaal vanuit de ontvangende app-repository; er is geen runtime-import vanaf GitHub of een CDN.
+
+De core-bestanden in de huidige template zijn afkomstig uit templatebroncommit `0f538f8acf40d086df38e9bc4ed2cd875925c569`, zoals vastgelegd in het manifest van PWA-Core v1.0.0. De template-setup bevat op dit moment nog geen formele `core-manifest.json`/`pwa-core.lock.json`-integratie en automatiseert nog geen release-distributie. Dat is een expliciet open integratiepunt; documentatie mag dit niet als afgerond voorstellen.
 
 ## Doel
 
-Generieke functionaliteit wordt op één plaats onderhouden. Elke app gebruikt een bewust gekozen, vastgepinde versie. Een verbetering wordt als update-PR aangeboden en kan dus eerst getest worden. Een app mag niet afhankelijk worden van een externe server om zijn kerncode te laden.
+Generieke functionaliteit wordt op één plaats onderhouden. Elke app gebruikt een bewust gekozen, vastgepinde versie. Een verbetering wordt via een aparte update-PR aangeboden en eerst getest. Een app mag niet afhankelijk worden van een externe server om zijn kerncode te laden.
 
-## Wat hoort in PWA-Core?
+## Verantwoordelijkheden
+
+### PWA-Core
 
 **Wel:**
-- js/core/ met kluis, encryptie, passkeys, GitHub-client, synchronisatie, records, navigatie, instellingen, UI-bouwstenen en apparaatfuncties;
-- css/base.css met gedeelde vormgeving en componentstijlen;
-- documentatie van de publieke interface tussen de kern en app.js;
-- generieke tests en een minimale test-app/fixture.
+- `js/core/` met kluis, encryptie, passkeys, GitHub-client, synchronisatie, records, navigatie, instellingen, UI-bouwstenen en apparaatfuncties;
+- `css/base.css`;
+- generieke tests, fixtures, API-contracten, manifest en releasebeheer.
 
 **Niet:**
-- js/config.js, js/app.js, css/app.css, index.html, manifest of app-iconen;
+- `js/config.js`, `js/app.js`, `css/app.css`, `index.html`, manifest of app-iconen;
 - app-specifieke schermen, datamodellen, labels, kleuren en berekeningen;
-- sw.js als compleet bestand: de service worker en precache-lijst blijven per app, omdat versie, scope en app-bestanden verschillen;
+- de volledige `sw.js`: de service worker en precache-lijst blijven per app;
 - tokens, kluisbestanden of gebruikersdata.
 
-## Technische vorm
+### PWA-Template en ontvangende apps
 
-1. Gebruik de aangemaakte repository `Gertjun/PWA-Core` als centrale bron.
-2. Houd daarin dezelfde bestandsindeling aan als in de apps: js/core/... en css/base.css. De kern importeert momenteel relatieve bestanden zoals ../config.js en ../app.js. Door de bestanden op dezelfde plek in elke app te plaatsen, blijven die imports werken zonder build-stap of runtime-download.
-3. Beheer versies met SemVer-tags (bijvoorbeeld v1.0.0). Een release is onveranderlijk; apps pinnen een specifieke release en commit-SHA.
-4. Neem in elke app een klein tekstbestand op met de gebruikte PWA-Core-versie en commit-SHA. De app serveert de kernbestanden gewoon vanaf zijn eigen GitHub Pages-site.
-5. Maak een GitHub Actions-workflow in elke app die op handmatige aanvraag en eventueel volgens een schema controleert op een nieuwere release. De workflow haalt de gekozen release-archiefbestanden op, kopieert alleen de toegestane kernbestanden naar js/core/ en css/base.css, voert controles uit, maakt een updatebranch en opent een PR.
-6. Gebruik voor het aanmaken van de PR de ingebouwde GITHUB_TOKEN van de betreffende app-repository, met alleen de noodzakelijke contents- en pull-requests-rechten. Geen persoonlijk PAT in de app. Pin gebruikte Actions op vaste commit-SHA's.
-7. De workflow merge't nooit automatisch. Een update wordt pas onderdeel van de app na tests en expliciet akkoord.
+- De template levert een startbare app met lokale core-bestanden.
+- Iedere app beheert zijn eigen configuratie, app-code, datamodel, styling, iconen en service worker.
+- Een app serveert core-bestanden vanaf de eigen origin en neemt ze op in de eigen offline-cache.
+- Generieke core-wijzigingen worden eerst in PWA-Core voorbereid en gereleased; daarna worden ze per app gecontroleerd geïntegreerd.
+
+## Release- en pincontract
+
+Een formele ontvangende app legt de gekozen core-release vast met:
+- `core-manifest.json`: allowlist en SHA-256-checksums;
+- `pwa-core.lock.json`: repository, versie, tag, volledige commit-SHA en SHA-256 van de exacte manifestbytes.
+
+De tag moet naar de opgegeven volledige commit-SHA verwijzen. De lokale pin wordt gecontroleerd met `node tools/pin.mjs verify`. De lokale bestanden en service-worker-precache worden gecontroleerd met `node tools/precache.mjs --manifest core-manifest.json --service-worker sw.js`.
+
+De huidige template-setup maakt deze metadata nog niet automatisch aan. Totdat de integratie is gerealiseerd, moet een nieuwe app niet worden beschouwd als formeel gepind, ook al bevat hij lokale core-bestanden.
 
 ## Waarom deze aanpak?
 
-- Geen npm, bundler of extra runtime-afhankelijkheid in de PWA.
-- De app blijft offline werken: alle benodigde kernbestanden staan in de app-repository en de service-worker-cache.
-- Een release is reproduceerbaar; elke app vermeldt exact welke kernversie hij gebruikt.
-- Updates worden zichtbaar als gewone PR's, met diff en CI-resultaten.
-- Een oudere app kan bewust op een stabiele versie blijven totdat de update getest is.
+- Geen npm, bundler of extra runtime-afhankelijkheid.
+- Offline gebruik blijft mogelijk doordat core-bestanden lokaal aanwezig zijn en worden gecachet.
+- Elke app kan bewust op een stabiele versie blijven.
+- Updates zijn reproduceerbaar en zichtbaar als PR's met diff en CI-resultaten.
+- Een mislukte of incompatibele update kan worden afgewezen zonder productiecode te wijzigen.
 
-## Alternatieven
+## Updateproces
 
-| Methode | Beoordeling |
-|---|---|
-| Remote ES-module import vanaf PWA-Core | Afwijzen: runtime-netwerkafhankelijkheid, lastiger offline en versie-/beschikbaarheidsrisico |
-| Git submodule | Afwijzen als standaard: extra Git- en deploycomplexiteit; gemakkelijk om de submodule niet mee te nemen in een Pages-deploy |
-| npm-package | Past niet bij de afspraak geen package manager/build-stap te gebruiken |
-| Git subtree | Technisch mogelijk en lokaal/offline goed, maar updatebeheer en gebruik in template-clones is minder vanzelfsprekend |
-| Releasebestanden kopiëren via GitHub Actions en PR | Voorkeur: lokale bestanden, versiepinning, geautomatiseerde update-PR's en geen persoonlijke token nodig bij een publieke PWA-Core |
+1. Core-release en manifest controleren.
+2. In de ontvangende app een eigen featurebranch maken.
+3. Alleen de allowlisted bestanden en pinmetadata bijwerken.
+4. De app-eigen precache gericht bijwerken indien nodig.
+5. Pin-, manifest-, syntax-, unit- en app-contracttests uitvoeren.
+6. PR openen met release-identificatie, diff, testresultaten en resterende handmatige controles.
+7. Pas na expliciet akkoord mergen.
 
-## Belangrijke aandachtspunten
+Geen automatische merge en geen directe wijziging van app-`main`.
 
-- De kern heeft een expliciete compatibiliteitsinterface met app.js en config.js nodig. Wijzigingen aan die interface moeten als breaking change worden behandeld.
-- Elke kernrelease moet een manifest bevatten met bestandsnamen, versienummer en checksums. De updateworkflow controleert dit vóór kopiëren.
-- De workflow moet controleren dat elk bestand uit js/core/ in de PRECACHE-lijst van sw.js staat. Als een nieuwe kernrelease een nieuw bestand introduceert, moet de PR ook de app-specifieke precache-lijst aanpassen.
-- Tests in PWA-Core controleren losse logica; tests in de ontvangende app controleren dat de kern met de concrete app-configuratie integreert.
-- De centrale kern wordt eerst gecontroleerd opgebouwd vanuit de gevalideerde PWA-Template 1.5.0. De proof-of-concept omvat vervolgens afzonderlijke update-PR's voor MW4-CAMO, Energieverbruik en Games Backlog. Cryptotracker krijgt eerst een technische inventarisatie; niet forceren dat deze legacy-app direct hetzelfde pakket gebruikt.
+## Reikwijdte
 
-## Gefaseerde invoering
+De eerste pilotgroep bestaat uit MW4-CAMO, Energieverbruik en Games Backlog. Deze worden elk afzonderlijk gemigreerd en geaccepteerd.
 
-1. **Stabiliseren:** PWA-Template 1.5.0 is gemerged en de gerichte twee-apparatentests zijn door de gebruiker bevestigd. De bredere acceptatietests blijven deels open.
-2. **Inventariseren:** vergelijk de actuele kernbestanden, CSS, interfacecontracten, tests en service-worker-precache van de drie pilotapps.
-3. **Extractie:** vul `Gertjun/PWA-Core` vanuit de gevalideerde Template-kern, inclusief testfixture, manifest, checksums en releaseproces.
-4. **Proof-of-concept:** maak afzonderlijke update-PR's voor MW4-CAMO, Energieverbruik en Games Backlog. Toon aan dat CI, precache, offline start, versiepinning en rollback correct werken.
-5. **Uitrollen:** pas na een geslaagde pilot volgen overige apps; elke app behoudt een eigen releasepin, PR en praktijktest.
-6. **Nieuwe apps:** template-setup neemt een bewust gekozen stabiele PWA-Core-release als lokale bestanden op.
+Cryptotracker en Vaste Lasten hebben een afwijkende, meer monolithische architectuur en eigen gegevens-/synccontracten. Ze worden pas na een afzonderlijke adapter-/refactoranalyse beoordeeld; er wordt geen gedeelde core geforceerd.
 
-## Acceptatiecriteria voor de proof-of-concept
+## Veiligheidsgrenzen
 
-- Een vastgepinde versie is zichtbaar in de app-repository.
-- De app laadt alle kernbestanden vanaf zijn eigen origin en start offline na een eerste succesvolle cachevulling.
-- Een nieuwe release opent een PR; geen bestand wordt rechtstreeks naar main geschreven.
-- De PR toont exact welke kernbestanden veranderen en welke versie wordt bijgewerkt.
-- CI controleert syntax, bestaande tests, manifest/checksums en service-worker-precache.
-- Een mislukte of incompatibele update kan worden afgewezen door de PR niet te mergen.
-- Geen data-repository, kluisinhoud of persoonlijk token wordt benaderd.
+- Gebruik voor core-tests uitsluitend synthetische data en nepclients.
+- Benader geen productie-datarepository, kluisbestanden of persoonlijke tokens.
+- Wijzig nooit een gepubliceerde core-release-tag of de release-assets.
+- Een groene CI is geen vervanging voor browser-, offline-, passkey- en multi-device-acceptatie.

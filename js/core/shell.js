@@ -907,7 +907,10 @@ function wireSettings() {
       if (blocked) {
         showUpdateRequired();
       } else {
-        await vault.setData(app.migrate(structuredClone(vault.getData())));
+        const restoredData = vault.getData();
+        const migrated = app.migrate(structuredClone(restoredData));
+        migrated[SYSTEM_KEY] = mergeSyncStates(restoredData[SYSTEM_KEY], migrated[SYSTEM_KEY]);
+        await vault.setData(migrated);
       }
       restoreForm.reset();
       render();

@@ -233,21 +233,24 @@ De tests draaien zonder echte GitHub-repository, tokens of gebruikersdata. Gebru
 
 ## 8. Praktijktests vóór de eerste stabiele release
 
-De volgende punten kunnen niet uitsluitend met Node-tests worden bewezen:
+De volgende 1.5.0-scenario's zijn op 12 november 2026 uitgevoerd in de geïsoleerde testapp `Gertjun/PWA-Template-Test`, met een afzonderlijke privé-testdatarepo. De uitkomsten hieronder zijn door de gebruiker op twee apparaten bevestigd:
 
-- nieuwe kluis aanmaken, bestaande kluis openen en wachtwoord-terugval;
-- passkey/PRF op iPhone, iPad en Windows;
-- sync tussen twee apparaten met wijzigingen aan beide kanten;
-- één apparaat offline houden, op het andere een record verwijderen, daarna het offline apparaat terugbrengen;
-- back-upherstel met dezelfde sleutel en met een andere sleutel;
-- twee browsertabbladen en een app-update met een reeds geopende oude versie;
-- offline starten na update en na expliciet op de knop Bijwerken tikken.
+- Synchronisatie in beide richtingen en het koppelen van een tweede apparaat: geslaagd.
+- Apparaat B offline houden, op A een record verwijderen, B weer online brengen en synchroniseren: het verwijderde record kwam niet terug.
+- Een eerdere back-up herstellen op A en daarna op B: het verwijderde record bleef op beide apparaten verwijderd.
+- Een apparaat afmelden: het apparaat kon daarna niet meer synchroniseren en kreeg de verwachte melding dat het was afgemeld.
+- Het afgemelde apparaat wissen en opnieuw koppelen: de oude afmelding bleef zichtbaar en de nieuwe koppeling verscheen als een nieuwe apparaatregistratie.
+- Verwijderbevestigingen controleren: beide actieve apparaten toonden hetzelfde aantal bevestigingen; het oude afgemelde apparaat liep één bevestiging achter en blokkeerde de compactie niet.
+
+De testbranch heeft een geslaagde GitHub Actions-testworkflow (commit `3cdc5fa490da0a194919e3e0354ac1f49c331e6d`, run [43201963152](https://github.com/Gertjun/PWA-Template-Test/actions/runs/43201963152)) en een geslaagde GitHub Pages-deployment (run [43202645959](https://github.com/Gertjun/PWA-Template-Test/actions/runs/43202645959)).
+
+Beperkingen: de exacte OS-/browsercombinaties zijn niet voor elke praktijktest vastgelegd. De volgende bredere controles uit de PWA-Core-acceptatielijst zijn niet allemaal met deze praktijktest bewezen: passkey-PRF op elk ondersteund platform, wachtwoordterugval, herstel met een andere sleutel, meerdere browsertabbladen, update van een reeds geopende oude app-versie en volledige offline-start na cachevulling. De 29 contracttests zijn een bredere acceptatielijst en niet allemaal geïmplementeerd of uitgevoerd.
 
 ## 9. Huidige status en blokkades
 
-- De code voor de verwijderadministratie staat op PWA-Template PR #1 (featurebranch), niet op `main`.
-- De laatste gecontroleerde PR #1-head `227b546d86fa5363797ba3d247c6fc9a0c8e31e5` heeft een succesvolle GitHub Actions-run (43196656532).
-- Dit bewijst de automatische tests op die commit, niet de browser- en twee-apparatentest.
-- De centrale repository `Gertjun/PWA-Core` bestaat nog niet.
-- De contracttestlijst hierboven is de acceptatiebasis voor de extractie; de tests zijn nog niet allemaal geïmplementeerd of uitgevoerd.
-
+- PWA-Template 1.5.0 is op 12 november 2026 gemerged naar `main` via PR #1, commit `0f538f8acf40d086df38e9bc4ed2cd875925c569`.
+- De GitHub Actions-testworkflow op die main-commit is succesvol afgerond (run [43197012910](https://github.com/Gertjun/PWA-Template/actions/runs/43197012910)).
+- De gerichte 1.5.0-praktijktests voor synchronisatie, offline-verwijdering, back-upherstel, afmelden/opnieuw koppelen en verwijderbevestigingen zijn door de gebruiker op twee apparaten succesvol bevestigd (zie §8).
+- De geïsoleerde testapp en testdatarepo zijn alleen voor validatie gebruikt; de productie-datarepo en productietokens zijn buiten scope gebleven.
+- De exacte OS-/browsermatrix en de overige bredere PWA-Core-acceptatietests blijven open; de resultaten bewijzen dus niet dat alle 29 contracttests of alle platformcombinaties zijn afgedekt.
+- De centrale repository `Gertjun/PWA-Core` en het distributie-/releasepinningmechanisme zijn nog niet ingericht.

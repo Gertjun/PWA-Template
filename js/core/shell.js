@@ -715,7 +715,7 @@ function renderSyncDevices() {
       class: 'btn btn-ghost',
       type: 'button',
       onClick: async () => {
-        const warning = `Apparaat ${device.id.slice(0, 8)} afmelden? Het kan daarna niet meer synchroniseren. Niet-gesynchroniseerde wijzigingen op dat apparaat gaan niet mee. Je kunt het later opnieuw koppelen als een nieuw apparaat.`;
+        const warning = `Apparaat ${device.id.slice(0, 8)} afmelden? Het kan daarna niet meer synchroniseren. Niet-gesynchroniseerde wijzigingen op dat apparaat gaan niet mee. Je kunt het later opnieuw koppelen als een nieuw apparaat door dit apparaat eerst te wissen en opnieuw te koppelen.`;
         if (!window.confirm(warning)) return;
         button.disabled = true;
         try {

@@ -6,7 +6,7 @@ Deze afspraken gelden voor alle PWA's van Geert (Cryptotracker, Vaste Lasten, En
 
 1. **Bepaal de juiste repository en opdracht.** Gebruik de repo die Geert in deze sessie noemt of die aantoonbaar bij het lopende project hoort. Raad nooit een repo of projectversie.
 2. **Controleer eerst GitHub.** Haal de actuele `main` op, bekijk openstaande branches en PR's en controleer of eerder werk al is gemerged. Baseer nieuw werk op de actuele stand; overschrijf geen werk van een andere sessie.
-3. **Lees de projectstatus.** Lees `CLAUDE.md`, `NOTES.md`, `DECISIONS.md), de bovenste paar versies van `CHANGELOG.md` en `WISHLIST.md`. Lees daarna `js/config.js` en `js/app.js`. Lees `README.md`, `docs/CLAUDE-INSTRUCTIES.md` en relevante bestanden onder `js/core/` als de opdracht dat vereist.
+3. **Lees de projectstatus.** Lees `CLAUDE.md`, `NOTES.md`, `DECISIONS.md`, de bovenste paar versies van `CHANGELOG.md` en `WISHLIST.md`. Lees daarna `js/config.js` en `js/app.js`. Lees `README.md`, `docs/CLAUDE-INSTRUCTIES.md` en relevante bestanden onder `js/core/` als de opdracht dat vereist.
 4. **Controleer de werkafspraken.** Let op openstaande PR's, testresultaten, bekende problemen en besluiten die deze wijziging raken. Vraag niet opnieuw naar informatie die al in de projectdocumentatie staat.
 5. **Bescherm gegevens.** Benader nooit de data-repository, kluisbestanden, persoonlijke toegangstokens of andere geheimen. Vraag eerst akkoord voor wijzigingen die bestaande gebruikersgegevens, het datamodel of een onomkeerbare handeling kunnen raken.
 
@@ -29,8 +29,8 @@ Deze afspraken gelden voor alle PWA's van Geert (Cryptotracker, Vaste Lasten, En
   - Werk `CHANGELOG.md` bij in gewone taal en haal gerealiseerde wensen uit `WISHLIST.md`.
   - Een wijziging die uitsluitend documentatie of ontwikkelafspraken raakt, krijgt geen onnodige app-versieophoging of service-worker-update. Noteer die wel in `NOTES.md` en zo nodig `DECISIONS.md`.
 - **Gegevens en datamodel:** vraag vooraf akkoord voor destructieve wijzigingen, schemawijzigingen of migraties die bestaande gegevens kunnen beïnvloeden. Behoud onbekende velden en compatibiliteit met oudere apparaten.
-- **Gedeelde kern:** behandel generieke bestanden zoals `js/core/**` en `css/base.css` niet als app-specifiek. Wijzig ze alleen met een expliciet generiek doel. Controleer vóór een wijziging welke apps dezelfde bestanden gebruiken. Totdat een centrale PWA-Core-repository is ingericht, geldt de PWA-template als voorlopige referentie; kopieer wijzigingen niet blind naar andere apps. Werk de verspreiding gecontroleerd bij via afzonderlijke PR's en tests. Zie `docs/SHARED-CORE.md`.
-- **Besluiten:** ga je in tegen `DECISIONS.md), benoem dat en vraag eerst akkoord. Oude besluiten blijven staan; voeg een nieuw besluit toe dat het eerdere besluit expliciet vervangt.
+- **Gedeelde kern:** behandel generieke bestanden zoals `js/core/**` en `css/base.css` niet als app-specifiek. Wijzig ze alleen met een expliciet generiek doel. Controleer vóór een wijziging welke apps dezelfde bestanden gebruiken. De centrale repository `Gertjun/PWA-Core` is aangemaakt. Totdat de eerste gevalideerde core-release en distributieworkflow gereed zijn, blijft de actuele PWA-Template-kern de tijdelijke bron voor de extractie. Kopieer wijzigingen niet blind naar andere apps; verspreid updates via afzonderlijke PR's en tests. Zie `docs/SHARED-CORE.md` en de PWA-Core-architectuurdocumentatie.
+- **Besluiten:** ga je in tegen `DECISIONS.md`, benoem dat en vraag eerst akkoord. Oude besluiten blijven staan; voeg een nieuw besluit toe dat het eerdere besluit expliciet vervangt.
 - **Geen geheimen:** schrijf geen tokens, wachtwoorden, kluisinhoud of persoonsgegevens in code, logs, commits, issues of PR's.
 
 ## Aan het einde van elke sessie (altijd)

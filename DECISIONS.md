@@ -38,3 +38,8 @@ Besluiten die een volgende sessie moet kennen. Oude besluiten pas je niet aan; e
 ### D10 – Gedeelde kern gecontroleerd verspreiden (12 nov 2026)
 - **Besluit:** generieke kerncode wordt niet blind per app gekopieerd. Totdat een centrale PWA-Core-repository bestaat, is PWA-Template de voorlopige referentie. Eerst vergelijken welke apps dezelfde kernversie gebruiken; daarna updates per app via eigen PR en tests verspreiden.
 - **Waarom:** voorkomt onbedoelde verschillen en regressies tussen apps.
+
+### D11 – Centrale PWA-Core en eerste pilotgroep (12 nov 2026)
+- **Besluit:** `Gertjun/PWA-Core` is de centrale repository voor generieke kerncode. De eerste proof-of-concept omvat MW4-CAMO, Energieverbruik en Games Backlog. Elke app krijgt een eigen update-PR en tests; er wordt nooit automatisch gemerged.
+- **Vervangt / werkt D10 bij:** de centrale repository is inmiddels aangemaakt. PWA-Template 1.5.0 is de actuele bronbasis voor de extractie, maar de eerste release wordt pas vastgelegd na inventarisatie, contractcontrole en tests.
+- **Waarom:** één beheerde bron met bewuste versiepinning, zonder runtime-CDN-afhankelijkheid of ongecontroleerde wijzigingen in bestaande apps.

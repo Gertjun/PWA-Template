@@ -1,5 +1,7 @@
 # Gedeelde PWA-kern – architectuur en migratieplan
 
+> **Statusupdate 12 november 2026:** PWA-Template 1.5.0 is inmiddels gemerged en de gerichte twee-apparatentests zijn door de gebruiker bevestigd. De centrale repository [Gertjun/PWA-Core](https://github.com/Gertjun/PWA-Core) is aangemaakt. De historische inventarisatie en fasering hieronder zijn een momentopname; de actuele implementatierichting staat in `docs/PWA-CORE-ARCHITECTUUR.md` en de contracten in `docs/PWA-CORE-CONTRACTS.md`. De eerste POC-groep is MW4-CAMO, Energieverbruik en Games Backlog.
+
 ## Doel
 
 Generieke verbeteringen aan synchronisatie, versleuteling, apparaatbeheer, back-up, navigatie en de PWA-schil moeten op een gecontroleerde manier beschikbaar komen in alle apps. Een wijziging in één app mag niet ongemerkt als de nieuwe standaard voor de andere apps gelden.

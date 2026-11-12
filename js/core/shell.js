@@ -709,7 +709,7 @@ function renderSyncDevices() {
       h('strong', {}, label),
       h('p', { class: 'hint' }, status),
       h('p', { class: 'hint' }, acknowledgements));
-    if (device.current) return h('div', { class: 'setting-line' }, details, h('span', { class: 'hint' }, 'Actief'));
+    if (device.current) return h('div', { class: 'setting-line' }, details, h('span', { class: 'hint' }, device.deactivatedAt ? 'Afgemeld' : 'Dit apparaat'));
     if (device.deactivatedAt) return h('div', { class: 'setting-line' }, details, h('span', { class: 'hint' }, 'Afgemeld'));
     const button = h('button', {
       class: 'btn btn-ghost',

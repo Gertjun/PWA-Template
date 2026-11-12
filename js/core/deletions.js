@@ -71,17 +71,25 @@ export function applyDeletionLedger(data) {
   };
   return visit(data);
 }
+function mergeDeletionHistory(state, ...sources) {
+  for (const source of sources) {
+    for (const [key, time] of Object.entries(collectDeletions(source || {}))) {
+      state.deletions[key] = Math.max(Number(state.deletions[key]) || 0, Number(time) || 0);
+    }
+  }
+  return state;
+}
 export function reconcileData(local, remote, appMerge = (a) => a) {
   const merged = appMerge(local || {}, remote || {}) || {};
   const state = mergeSyncStates(local?.[SYSTEM_KEY], remote?.[SYSTEM_KEY]);
-  Object.assign(state.deletions, collectDeletions(local || {}), collectDeletions(remote || {}), collectDeletions(merged));
+  mergeDeletionHistory(state, local, remote, merged);
   merged[SYSTEM_KEY] = state;
   return applyDeletionLedger(merged);
 }
 export function reconcileBackup(backup, current) {
   const restored = structuredClone(backup || {});
   const state = mergeSyncStates(backup?.[SYSTEM_KEY], current?.[SYSTEM_KEY]);
-  Object.assign(state.deletions, collectDeletions(backup || {}), collectDeletions(current || {}));
+  mergeDeletionHistory(state, backup, current);
   restored[SYSTEM_KEY] = state;
   return applyDeletionLedger(restored);
 }

@@ -268,7 +268,7 @@ export async function captureDeletionHistory() {
   const deletions = collectDeletions(data);
   const state = mergeSyncStates(data[SYSTEM_KEY], null);
   const before = JSON.stringify(state.deletions);
-  Object.assign(state.deletions, deletions);
+  for (const [key, time] of Object.entries(deletions)) state.deletions[key] = Math.max(Number(state.deletions[key]) || 0, Number(time) || 0);
   if (before !== JSON.stringify(state.deletions)) {
     data = { ...data, [SYSTEM_KEY]: state }; revision++;
     updateSyncMeta({ dirty: true }); await persist({ reencrypt: true });
@@ -279,7 +279,7 @@ export async function prepareSyncData() {
   await captureDeletionHistory();
   const id = getDeviceId();
   let state = registerDevice(data[SYSTEM_KEY], id);
-  Object.assign(state.deletions, collectDeletions(data));
+  for (const [key, time] of Object.entries(collectDeletions(data))) state.deletions[key] = Math.max(Number(state.deletions[key]) || 0, Number(time) || 0);
   state = acknowledgeDeletions(state, id);
   if (JSON.stringify(state) !== JSON.stringify(data[SYSTEM_KEY] || null)) {
     data = { ...data, [SYSTEM_KEY]: state }; revision++;
@@ -289,7 +289,7 @@ export async function prepareSyncData() {
 export function reconcileRemoteData(remoteData, migrate) {
   const raw = structuredClone(remoteData || {});
   const state = mergeSyncStates(data?.[SYSTEM_KEY], raw[SYSTEM_KEY]);
-  Object.assign(state.deletions, collectDeletions(raw));
+  for (const [key, time] of Object.entries(collectDeletions(raw))) state.deletions[key] = Math.max(Number(state.deletions[key]) || 0, Number(time) || 0);
   raw[SYSTEM_KEY] = state;
   const migrated = migrate(structuredClone(raw)) || {};
   const next = reconcileBackup(migrated, data);

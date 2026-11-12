@@ -13,10 +13,13 @@ Basistemplate voor Geerts PWA's. MW4 Camo Tracker en Energieverbruik gebruiken a
 - **Centrale PWA-Core:** architectuur in onderzoek. Doel: één bron voor generieke kerncode, versiebeheer en gecontroleerde verspreiding. Nog geen centrale repository of distributiemechanisme ingericht.
 - **Cryptotracker:** beoordelen welke onderdelen veilig kunnen worden overgezet; niet aannemen dat de structuur identiek is.
 
-## 3. Werkwijze
+## 3. Architectuur
+- Voorkeursontwerp en invoeringsstappen staan in docs/PWA-CORE-ARCHITECTUUR.md. Voorkeur: releasebestanden via GitHub Actions als lokale bestanden in elke app opnemen en via update-PR aanbieden. Proof-of-concept is nog niet uitgevoerd.
+
+## 4. Werkwijze
 Zie CLAUDE.md. Werk vanaf actuele main in een eigen branch. PR en checks zijn verplicht; merge uitsluitend na expliciet akkoord.
 
-## 4. Sessielog (nieuwste bovenaan)
-- **12 nov 2026:** werkafspraken aangescherpt: actuele repo/PR/CI-controle aan het begin, branches en PR's, geen directe push of merge zonder akkoord, vaste afrondingsdocumentatie. Controle bevestigt identieke js/core-bestanden in PWA-Template, MW4-CAMO en Energieverbruik op de gecontroleerde main-heads.
+## 5. Sessielog (nieuwste bovenaan)
+- **12 nov 2026:** architectuurvoorstel voor centrale PWA-Core toegevoegd; distributie via vastgepinde releases en update-PR's is de voorkeursrichting, nog te bewijzen in een POC. Werkafspraken aangescherpt: actuele repo/PR/CI-controle aan het begin, branches en PR's, geen directe push of merge zonder akkoord, vaste afrondingsdocumentatie. Controle bevestigt identieke js/core-bestanden in PWA-Template, MW4-CAMO en Energieverbruik op de gecontroleerde main-heads.
 - **10 nov 2026:** 1.4.0: vaste indeling voor alle apps: navigatie, Instellingen als laatste scherm, kopbalk, koppelcode en bouwstenen.
 - **10 nov 2026:** 1.3.0: kern gelijkgetrokken met MW4, Games en Energieverbruik; vaste projectdocumentatie toegevoegd.

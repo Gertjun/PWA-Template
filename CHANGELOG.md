@@ -1,5 +1,12 @@
 # Changelog
 
+## Repositorybeheer – 12 november 2026 (geen app-release)
+- Werkafspraken en sessieprocedures geconsolideerd; wijzigingen verlopen via branches en PR's en worden alleen na expliciet akkoord gemerged.
+- Architectuur- en API-contracten voor de centrale PWA-Core vastgelegd en bijgewerkt naar de actuele status.
+- PWA-Core-repository aangemaakt; eerste extractie en distributie naar de drie modulaire pilotapps volgen afzonderlijk.
+- Geen runtimecode gewijzigd; app-versie blijft 1.5.0.
+
+
 ## 1.5.0
 
 **Toegevoegd**

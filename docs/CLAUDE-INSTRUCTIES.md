@@ -27,13 +27,13 @@ Kopieer alles onder de streep naar de **Instructies** van je Claude-project en v
 
 ### Begin van elke sessie
 1. Controleer eerst de actuele repository, `main`, openstaande branches en PR's. Haal de laatste versie op; baseer geen werk op een verouderde kopie.
-2. Lees `CLAUDE.md`, `NOTES.md`, `DECISIONS.md`, de bovenste paar versies van `CHANGELOG.md` en `WISHLIST.md).
+2. Lees `CLAUDE.md`, `NOTES.md`, `DECISIONS.md`, de bovenste paar versies van `CHANGELOG.md` en `WISHLIST.md`.
 3. Lees `js/config.js` en `js/app.js`; lees `README.md` en relevante delen van `js/core/` als de opdracht dat vraagt.
 4. Controleer openstaande testresultaten, bekende problemen en besluiten. Vraag niet opnieuw naar context die al in de repo staat.
 
 ### Tijdens het werk
-- Werk voor iedere afgebakende wijziging op een eigen feature- of fix-branch vanaf de actuele `main). Werk alleen verder op een bestaande branch als dat bewust bij de lopende PR hoort.
-- Push nooit rechtstreeks naar `main). Maak kleine commits en open of werk een PR bij.
+- Werk voor iedere afgebakende wijziging op een eigen feature- of fix-branch vanaf de actuele `main`. Werk alleen verder op een bestaande branch als dat bewust bij de lopende PR hoort.
+- Push nooit rechtstreeks naar `main`. Maak kleine commits en open of werk een PR bij.
 - Test relevante code vóór het pushen. Controleer daarna de GitHub Actions-resultaten op de actuele PR-commit.
 - Een groene CI is geen vervanging voor handmatige browser-, iPhone- of twee-apparatentests. Meld duidelijk welke tests wel en niet zijn uitgevoerd.
 - **Merge nooit zonder mijn expliciete akkoord.** "Ga verder" of "voer de volgende stap uit" is op zichzelf geen toestemming om te mergen.
@@ -49,7 +49,7 @@ Kopieer alles onder de streep naar de **Instructies** van je Claude-project en v
 
 ### Gedeelde kern
 - Generieke bestanden zoals `js/core/**` en `css/base.css` kunnen door meerdere apps worden gebruikt. Controleer vóór wijziging welke apps ze gebruiken en vergelijk de actuele versies.
-- Totdat een centrale PWA-Core-repository bestaat, is de PWA-template de voorlopige referentie. Kopieer geen bestanden blind naar andere apps.
+- De centrale repository `Gertjun/PWA-Core` is aangemaakt. Totdat de eerste gevalideerde release beschikbaar is, blijft PWA-Template 1.5.0 de tijdelijke bronbasis. Kopieer geen bestanden blind naar andere apps.
 - Breng generieke wijzigingen gecontroleerd over via aparte branches en PR's per app. Test elke app afzonderlijk.
 - Zie `docs/SHARED-CORE.md` voor de beoogde aanpak en status van de centrale kern.
 

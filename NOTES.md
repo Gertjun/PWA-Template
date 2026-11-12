@@ -10,24 +10,25 @@ Laatst bijgewerkt: 12 november 2026 · versie **1.5.0**
 De actuele werkwijze staat in `CLAUDE.md`. Wijzigingen verlopen via branches en PR's; merge alleen na expliciet akkoord. Documentatie-only wijzigingen verhogen de app-versie niet.
 
 ## 2. Stand
-Basistemplate voor Geerts PWA's. Apps die erop gebouwd zijn: MW4 Camo Tracker, Games Backlog, Energieverbruik. Nieuwe apps starten met *Use this template*; de workflow *Nieuwe app instellen* vult naam, opslag-id en datapad in.
+Basistemplate voor Geerts PWA's. De modulaire apps MW4-CAMO, Energieverbruik en Games Backlog vormen de eerste POC-groep voor de centrale PWA-Core.
 
-De template bevat een generieke kern in `js/core/`. PWA-Template is voorlopig de referentie, maar de kern is nog niet afgesplitst naar een zelfstandige PWA-Core-repository. Zie `docs/SHARED-CORE.md`.
+De repository `Gertjun/PWA-Core` is aangemaakt. De initiële extractie van de gedeelde bestanden, release-manifesten, versiepinning en distributieworkflow moeten nog worden ingericht en getest. PWA-Template 1.5.0 is de actuele referentie voor de nieuwe verwijderadministratie; de bestaande identieke kern van de drie POC-apps wordt eerst zorgvuldig vergeleken voordat bestanden worden vervangen.
+
+Cryptotracker en Vaste Lasten blijven buiten de eerste POC en worden later afzonderlijk op architectuur en migratiemogelijkheden beoordeeld.
 
 ## 3. Open punten en bekende problemen
-- De graveyard blijft permanent bestaan; dit is bewust om verwijderde records ook na zeer oude back-ups te blokkeren.
-- De volledige browser- en twee-apparatentest van versie 1.5.0 moet nog worden uitgevoerd.
-- Herstel van een back-up met een andere kluissleutel wordt veilig geweigerd als de actuele remote kluis niet leesbaar is.
-- Centrale PWA-Core-repository en gecontroleerde update-workflow zijn nog ontwerpwerk. Inventarisatie: MW4, Energieverbruik en Games Backlog hebben identieke hashes voor de 12 kern-/basebestanden; Template wijkt in PR #1 af in shell/sync/vault en voegt deletions.js toe. Cryptotracker en Vaste Lasten zijn monolithisch en gebruiken geen js/core/. Zie docs/SHARED-CORE.md.
+- Centrale PWA-Core vullen met uitsluitend generieke bestanden, contracttests, manifest en release-/distributieworkflows.
+- De eerste release en updateworkflow aantonen met aparte PR's voor MW4-CAMO, Energieverbruik en Games Backlog.
+- De bredere acceptatietests en platformmatrix blijven deels open. De geslaagde twee-apparatentest van 1.5.0 bewijst niet automatisch alle 29 contracttests of alle OS-/browsercombinaties.
+- PWA-Template PR #2 bevat werkafspraken en de architectuur-/contractdocumenten. Deze PR wordt bijgewerkt op basis van de actuele main en blijft open voor beoordeling; er wordt niet automatisch gemerged.
+- De tijdelijke testtoken is ingetrokken. Productiedata, kluisbestanden en productietokens blijven buiten scope.
 
 ## 4. Sessielog (kort, nieuwste bovenaan)
 
-- **12 nov 2026:** volledige repository-inventarisatie: MW4, Energieverbruik en Games Backlog delen dezelfde 12 core-/basebestanden; Template heeft afwijkingen in PR #1; Cryptotracker en Vaste Lasten zijn monolithische apps zonder js/core/. PR #1 CI is groen; praktijktest 1.5.0 nog open.
+- **12 nov 2026:** PWA-Core-repository aangemaakt. PR #2 wordt bijgewerkt met een merge van de actuele Template-main en opgeloste documentatieconflicten. De architectuur- en contractdocumenten worden bijgewerkt naar de actuele projectstatus. Geen app-code of app-versie gewijzigd.
+- **12 nov 2026:** PWA-Template 1.5.0 is gemerged naar main. De gebruiker heeft de gerichte twee-apparatentests voor synchronisatie, offline-verwijdering, back-upherstel, afmelden/opnieuw koppelen en verwijderbevestigingen succesvol afgerond. De tijdelijke testtoken is ingetrokken.
+- **12 nov 2026:** de modulaire apps MW4-CAMO, Energieverbruik en Games Backlog zijn geselecteerd als eerste POC-groep. Cryptotracker en Vaste Lasten worden later afzonderlijk beoordeeld.
+- **12 nov 2026:** werkafspraken aangescherpt: actuele repo/PR/CI-controle, branches en PR's, geen directe push of merge zonder expliciet akkoord, vaste start- en eindcontrole.
 
-- **12 nov 2026:** eerste vergelijking van de gedeelde kern: MW4-CAMO en Energieverbruik delen identieke hashes voor de aanwezige core-bestanden en base.css; Template heeft afwijkende shell/sync/vault en een extra deletions-module. Centrale kern nog niet aangemaakt.
-- **12 nov 2026:** werkinstructies gelijkgetrokken: branch/PR-werkwijze, expliciete merge-toestemming, start- en eindcontrole, onderscheid tussen app-releases en documentatie-only wijzigingen. Besluiten D9 en D10 toegevoegd. Nog niet gemerged.
-- **12 nov 2026:** 1.5.0: generieke verwijderadministratie, apparaatregistratie en beheer in Instellingen; tombstones worden na alle bevestigingen opgeruimd, terwijl de graveyard behouden blijft. Acht automatische tests en JavaScript-syntaxiscontrole toegevoegd. Browser- en twee-apparatentest open.
-
-- **10 nov 2026:**
-  - 1.4.0: vaste indeling voor alle apps: navigatie (`core/nav.js`), Instellingen als laatste scherm, kopbalk, koppelcode (`core/pair.js`) en bouwstenen (`core/ui.js`).
-  - 1.3.0: kern gelijkgetrokken met MW4, Games en Energieverbruik (bestaande passkey, auto Face ID, instellingenmenu, drie manieren om instellingen te tonen, `readSyncFile`). CLAUDE.md, NOTES, DECISIONS en WISHLIST toegevoegd als vaste set voor elke app.
+- **10 nov 2026:** 1.4.0: vaste indeling voor alle apps: navigatie, Instellingen als laatste scherm, kopbalk, koppelcode en gedeelde UI-bouwstenen.
+- **10 nov 2026:** 1.3.0: kern gelijkgetrokken met MW4, Games en Energieverbruik; vaste projectdocumentatie toegevoegd.

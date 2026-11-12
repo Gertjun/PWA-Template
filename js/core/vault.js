@@ -292,6 +292,7 @@ export function reconcileRemoteData(remoteData, migrate) {
   for (const [key, time] of Object.entries(collectDeletions(raw))) state.deletions[key] = Math.max(Number(state.deletions[key]) || 0, Number(time) || 0);
   raw[SYSTEM_KEY] = state;
   const migrated = migrate(structuredClone(raw)) || {};
+  migrated[SYSTEM_KEY] = mergeSyncStates(raw[SYSTEM_KEY], migrated[SYSTEM_KEY]);
   const next = reconcileBackup(migrated, data);
   next[SYSTEM_KEY] = acknowledgeDeletions(next[SYSTEM_KEY], getDeviceId());
   return next;
@@ -299,9 +300,10 @@ export function reconcileRemoteData(remoteData, migrate) {
 export function mergeRemoteData(remoteData, migrate, appMerge) {
   const raw = structuredClone(remoteData || {});
   const state = mergeSyncStates(data?.[SYSTEM_KEY], raw[SYSTEM_KEY]);
-  Object.assign(state.deletions, collectDeletions(raw));
+  for (const [key, time] of Object.entries(collectDeletions(raw))) state.deletions[key] = Math.max(Number(state.deletions[key]) || 0, Number(time) || 0);
   raw[SYSTEM_KEY] = state;
   const migrated = migrate(structuredClone(raw)) || {};
+  migrated[SYSTEM_KEY] = mergeSyncStates(raw[SYSTEM_KEY], migrated[SYSTEM_KEY]);
   const next = reconcileData(data, migrated, appMerge);
   next[SYSTEM_KEY] = acknowledgeDeletions(next[SYSTEM_KEY], getDeviceId());
   return next;

@@ -6,7 +6,8 @@ export const APP = {
 
   // Semver. Bij ELKE release ook VERSION in sw.js gelijk ophogen,
   // anders krijgen geïnstalleerde apps de update niet.
-  version: '1.5.0',
+  version: '1.6.0',
+  coreVersion: '1.4.0',
 
   // UNIEK PER APP. Alle GitHub Pages-sites onder <gebruiker>.github.io
   // delen dezelfde origin en dus dezelfde localStorage. Zonder unieke
@@ -16,7 +17,7 @@ export const APP = {
 
   // Standaardlocatie van het versleutelde kluisbestand in je PRIVATE data-repo.
   // Tip: één data-repo voor al je apps, met per app een eigen map.
-  defaultDataPath: 'mijn-app/vault.json',
+  defaultDataPath: 'workspaces/mijn-app/pwa-core-v1/vault.json',
   defaultBranch: 'main',
 
   // Standaardtijd voor automatisch vergrendelen (minuten inactiviteit of op de

@@ -85,7 +85,7 @@ await edit('js/config.js', [
   [/name:\s*'[^']*'/, `name: ${jsString(name)}`],
   [/version:\s*'[^']*'/, "version: '1.0.0'"],
   [/storagePrefix:\s*'[^']*'/, `storagePrefix: ${jsString(slug)}`],
-  [/defaultDataPath:\s*'[^']*'/, `defaultDataPath: ${jsString(`${slug}/vault.json`)}`],
+  [/defaultDataPath:\s*'[^']*'/, `defaultDataPath: ${jsString(`workspaces/${slug}/pwa-core-v1/vault.json`)}`],
 ]);
 
 await edit('sw.js', [[/const VERSION = '[^']*';/, "const VERSION = '1.0.0';"]]);

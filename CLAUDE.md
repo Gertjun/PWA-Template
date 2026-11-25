@@ -6,7 +6,7 @@ Deze afspraken gelden voor Cryptotracker, Vaste Lasten, Energieverbruik, Games B
 
 1. Bepaal de juiste repository en opdracht uit de actuele projectcontext.
 2. Controleer GitHub: actuele `main`, relevante branches, open PR's en checks. Baseer werk nooit op een verouderde snapshot.
-3. Lees de relevante statusdocumentatie: `CLAUDE.md`, `NOTES.md`, `DECISIONS.md`, recente changelog en wishlist; lees daarna de relevante code en README.
+3. Lees de relevante statusdocumentatie: `CLAUDE.md`, `README.md`, `DECISIONS.md`, recente changelog en wishlist; lees daarna de relevante code.
 4. Controleer testresultaten, bekende problemen en besluiten.
 5. Bescherm gegevens: benader nooit data-repositories, kluisbestanden, tokens of geheimen. Vraag vooraf akkoord voor destructieve acties of wijzigingen die bestaande gegevens kunnen raken.
 
@@ -33,7 +33,7 @@ Deze afspraken gelden voor Cryptotracker, Vaste Lasten, Energieverbruik, Games B
 
 ## PWA-Core en PWA-Template
 
-- `Gertjun/PWA-Core` is de centrale bron voor generieke kerncode. De eerste stabiele release `v1.0.0` is gepubliceerd.
+- `Gertjun/PWA-Core` is de centrale bron voor generieke kerncode. De template is gepind op de officiële release `v1.4.0`; controleer bij iedere wijziging de actuele pin.
 - `Gertjun/PWA-Template` blijft de officiële startbasis voor nieuwe apps. Het is niet langer de centrale ontwikkelplaats voor generieke core-wijzigingen.
 - Core-bestanden worden in ontvangende apps lokaal opgenomen en vanaf de eigen origin geladen; geen runtime-download van PWA-Core of CDN.
 - Een formele releasepin bestaat uit `core-manifest.json` en `pwa-core.lock.json`, inclusief versie, tag, volledige commit-SHA en manifestchecksum. Als pinbestanden ontbreken, meld dat als integratiegat.
@@ -53,7 +53,7 @@ Deze afspraken gelden voor Cryptotracker, Vaste Lasten, Energieverbruik, Games B
 ## Afronding van elke sessie
 
 1. Controleer diff, branch, PR-status en checks op de laatste commit.
-2. Werk `NOTES.md` bij met datum, actuele stand, open punten en uitgevoerde/niet-uitgevoerde tests.
+2. Werk `README.md` bij met de actuele stand en teststatus.
 3. Voeg zo nodig een nieuw besluit toe; herschrijf oude besluiten niet.
 4. Rapporteer wijzigingen, branch/PR, testresultaten, resterende controles en volgende stap.
 5. Vraag expliciet akkoord voordat je merge't.

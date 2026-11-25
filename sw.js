@@ -12,7 +12,6 @@ const CACHE_PREFIX = `shell:${SCOPE}:`;
 const CACHE = `${CACHE_PREFIX}${VERSION}`;
 
 const PRECACHE = [
-  './',
   './index.html',
   './manifest.webmanifest',
   './core-manifest.json',

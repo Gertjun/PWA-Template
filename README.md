@@ -2,11 +2,15 @@
 
 Officiële startbasis voor nieuwe, installeerbare Progressive Web Apps op GitHub Pages. De template levert de app-schil, een demo-app en de lokale gedeelde kernbestanden.
 
+## Stand
+
+Kandidaat 1.6.0 (25 november 2026), met PWA-Core 1.4.0. CI en fysieke acceptatie nog vereist; main blijft ongewijzigd tot akkoord.
+
 ## Architectuur in het kort
 
 De gedeelde kern wordt centraal onderhouden in [PWA-Core](https://github.com/Gertjun/PWA-Core). De browser laadt de kern niet rechtstreeks uit PWA-Core: de JavaScript-modules en basis-CSS staan lokaal in de app-repository en worden vanaf de eigen GitHub Pages-origin geladen.
 
-PWA-Core v1.0.0 is gepubliceerd. De core-bestanden in deze template zijn afkomstig uit de templatebroncommit `0f538f8acf40d086df38e9bc4ed2cd875925c569`, die als bron in het PWA-Core-manifest is vastgelegd. De formele app-pinbestanden en de automatische distributie-/updateworkflow zijn nog niet in deze template-setup geïntegreerd. Behandel de aanwezigheid van lokale core-bestanden dus niet als bewijs dat een nieuwe app al een gevalideerd `pwa-core.lock.json` heeft. Dit wordt als afzonderlijke integratiestap opgepakt.
+De template gebruikt de officiële PWA-Core v1.4.0-release. `core-manifest.json` en `pwa-core.lock.json` leggen de versie en checksums vast. CI controleert de pin en volledige service-worker-precache. Nieuwe apps erven deze bestanden.
 
 **Belangrijk:** pas generieke kernbestanden niet zelfstandig in deze repository aan als app-specifieke oplossing. Een generieke wijziging hoort thuis in PWA-Core en wordt daarna gecontroleerd via aparte PR's naar ontvangende apps verspreid.
 
@@ -19,6 +23,7 @@ PWA-Core v1.0.0 is gepubliceerd. De core-bestanden in deze template zijn afkomst
 - Automatisch vergrendelen, privacyscherm, back-up en herstel, dark mode en iPhone-safe-areas.
 - Bescherming bij meerdere tabbladen en verschillende app-versies.
 - Apparaatregistratie, bevestiging van verwijderingen en bescherming tegen terugzetten via oude back-ups.
+- QR- en tekstkoppeling zonder pincode of wachtwoord (PAIR-3); oudere PAIR-2-codes en handmatige koppeling blijven ondersteund.
 - Geen framework, build-stap, CDN-script of externe runtime-library.
 
 ## Structuur
@@ -48,7 +53,7 @@ De service worker blijft app-eigendom. De core-allowlist bevat geen volledige `s
 3. Wacht tot de workflow **Nieuwe app instellen** klaar is. Deze stelt onder meer de naam, opslagprefix, datapad, app-versie, manifest en titels in en probeert GitHub Pages te activeren.
 4. Controleer de workflow-samenvatting. Als Pages niet automatisch is ingeschakeld: Settings → Pages en configureer de door de repository gebruikte deploymethode.
 5. Vul de projectinstructies uit `docs/CLAUDE-INSTRUCTIES.md` aan en start met `docs/STARTPROMPT.md`.
-6. Controleer vóór ingebruikname de core-release-identificatie en pinintegratie. De huidige template-setup maakt nog niet automatisch een formeel `pwa-core.lock.json`.
+6. Controleer vóór ingebruikname de geërfde release-pin met `node tools/pin.mjs verify` en `node tools/precache.mjs --manifest core-manifest.json --service-worker sw.js`.
 7. Test de app online en offline en voer de relevante beveiligings- en herstelcontroles uit voordat echte gegevens worden gebruikt.
 
 ## App-specifieke ontwikkeling
@@ -93,7 +98,7 @@ export const app = {
 3. Vul eigenaar, repository, branch, datapad en token in via de app-instellingen.
 4. Test synchronisatie en koppel daarna eventueel een tweede apparaat.
 
-Het token wordt lokaal versleuteld opgeslagen en niet gesynchroniseerd. Deel of commit het token nooit. De ontwikkelworkflow benadert de data-repository, kluisbestanden of tokens niet.
+Het token wordt lokaal versleuteld opgeslagen en niet gesynchroniseerd. De nieuwe QR- en tekstkoppelcode bevat wel de token én de datasleutel; deel die uitsluitend met je eigen apparaat. De app accepteert de code drie minuten; een gekopieerde sleutel of token blijft geldig. Deel of commit het token nooit. De ontwikkelworkflow benadert de data-repository, kluisbestanden of tokens niet.
 
 ## Beveiligingsmodel
 

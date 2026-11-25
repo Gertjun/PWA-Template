@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.0 — 25 november 2026
+- PWA-Core v1.4.0 integraal gepind; CI controleert manifest, checksums en precache.
+- Nieuwe QR- en tekstkoppeling zonder pincode of wachtwoord; sessievergrendeling en opslagfoutafhandeling uit Core.
+- Nieuwe apps gebruiken een eigen workspace-pad.
+
 ## Repositorybeheer – 12 november 2026 (geen app-release)
 - Werkafspraken en sessieprocedures geconsolideerd; wijzigingen verlopen via branches en PR's en worden alleen na expliciet akkoord gemerged.
 - Architectuur- en API-contracten voor de centrale PWA-Core vastgelegd en bijgewerkt naar de actuele status.

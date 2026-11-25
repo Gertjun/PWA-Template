@@ -3,7 +3,7 @@
 // BIJ ELKE RELEASE: VERSION ophogen (gelijk aan js/config.js).
 // NIEUW BESTAND?    Toevoegen aan PRECACHE.
 
-const VERSION = '1.5.0';
+const VERSION = '1.6.0';
 
 // De cache-naam bevat het pad van de app, zodat meerdere apps onder
 // <gebruiker>.github.io elkaars cache niet opruimen.
@@ -15,6 +15,8 @@ const PRECACHE = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './core-manifest.json',
+  './pwa-core.lock.json',
   './css/base.css',
   './css/app.css',
   './js/main.js',
@@ -31,6 +33,14 @@ const PRECACHE = [
   './js/core/dom.js',
   './js/core/nav.js',
   './js/core/pair.js',
+  './js/core/pairing-ui.js',
+  './js/core/qrcode.js',
+  './js/core/device-pairing.js',
+  './js/core/biometric-factory.js',
+  './js/core/session-lock.js',
+  './js/core/session-lock-factory.js',
+  './js/core/sync-factory.js',
+  './js/core/vault-factory.js',
   './js/core/ui.js',
   './icons/icon-192.png',
   './icons/icon-512.png',

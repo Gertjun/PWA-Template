@@ -43,3 +43,7 @@ Besluiten die een volgende sessie moet kennen. Oude besluiten pas je niet aan; e
 - **Besluit:** `Gertjun/PWA-Core` is de centrale repository voor generieke kerncode. De eerste proof-of-concept omvat MW4-CAMO, Energieverbruik en Games Backlog. Elke app krijgt een eigen update-PR en tests; er wordt nooit automatisch gemerged.
 - **Vervangt / werkt D10 bij:** de centrale repository is inmiddels aangemaakt. PWA-Template 1.5.0 is de actuele bronbasis voor de extractie, maar de eerste release wordt pas vastgelegd na inventarisatie, contractcontrole en tests.
 - **Waarom:** één beheerde bron met bewuste versiepinning, zonder runtime-CDN-afhankelijkheid of ongecontroleerde wijzigingen in bestaande apps.
+
+### D12 – Template met officiële Core-pin (25 nov 2026)
+- Nieuwe apps erven de ongewijzigde Core v1.4.0-release, het manifest, lockbestand en CI-controles. De setup wijzigt alleen app-eigen bestanden en gebruikt voor nieuwe apps `workspaces/<app-id>/pwa-core-v1/vault.json`. Bestaande apps houden hun eigen pad.
+- PAIR-3 overdraagt volledige toegang zonder PIN of wachtwoord. Alleen gebruiken op eigen apparaten; oudere codes en handmatige koppeling behouden. Geen automatische merge.

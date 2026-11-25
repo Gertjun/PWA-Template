@@ -5,12 +5,13 @@
 import { APP } from '../config.js';
 import { app } from '../app.js';
 import * as vault from './vault.js';
+import * as sessionLock from './session-lock.js';
 import { SYSTEM_KEY, mergeSyncStates } from './deletions.js';
 import * as bio from './biometric.js';
 import { syncNow, UpdateRequiredError } from './sync.js';
 import { createClient } from './github.js';
 import { createNav } from './nav.js';
-import * as pair from './pair.js';
+import * as pairUi from './pairing-ui.js';
 import { $, $$, h, formValues, saveFile, formatWhen, today, isMobileStandalone } from './dom.js';
 
 const SCREENS = ['loading', 'setup', 'lock', 'app'];
@@ -35,17 +36,193 @@ let swRegistration = null;
 let persistRequested = false;
 let nav = null;            // navigatie tussen de schermen (core/nav.js)
 let bioBusy = false;       // er loopt al een Face ID / passkey-poging
+let sessionLockHandle = null;
+let locking = false;
+let syncPromise = null;
+let syncController = null;
+let storageConflict = false;
+let storageConflictExternalValues = new Map();
+const busyOperations = new Set();
 
 // Wijzigingen lopen één voor één, zodat elke wijziging voortbouwt op de vorige
 // (ook bij heel snel klikken).
 let updateChain = Promise.resolve();
 
-async function applyUpdate(mutator) {
-  if (blocked) {
-    toast('Werk de app eerst bij voordat je iets wijzigt.', 'error');
+async function acquireAppSession() {
+  if (locking) throw new Error('De app wordt vergrendeld. Probeer het zo opnieuw.');
+  if (sessionLockHandle) return;
+  const handle = await sessionLock.acquireSessionLock();
+  if (!handle) throw new sessionLock.SessionLockBusyError();
+  sessionLockHandle = handle;
+}
+
+async function releaseAppSession() {
+  const handle = sessionLockHandle;
+  sessionLockHandle = null;
+  if (handle) {
+    try { await handle.release(); }
+    catch (error) { console.error('Sessie-lock vrijgeven mislukt:', error?.name || 'Error'); }
+  }
+}
+
+function trackOperation(operation) {
+  if (locking) return Promise.reject(new Error('De app wordt vergrendeld.'));
+  const task = Promise.resolve().then(operation);
+  busyOperations.add(task);
+  return task.finally(() => busyOperations.delete(task));
+}
+
+function saveDeviceSettings(value) {
+  return trackOperation(() => vault.setDeviceSettings(value));
+}
+
+function showStorageNotice(error) {
+  const retry = h('button', { type: 'button', class: 'btn btn-primary btn-small' }, 'Opnieuw proberen');
+  retry.addEventListener('click', async () => {
+    retry.disabled = true;
+    try {
+      await vault.retryFlush();
+      hideNotice();
+      render();
+      updateSyncIndicator();
+      toast('Lokale opslag is hersteld.', 'ok');
+    } catch (retryError) {
+      showStorageNotice(retryError);
+    } finally {
+      retry.disabled = false;
+    }
+  });
+  showNotice(
+    h('p', {}, h('strong', {}, 'Opslag niet bevestigd.'), ' Laat deze app open en probeer de opslag te herstellen voordat je de app sluit.'),
+    h('div', { class: 'button-row' }, retry),
+  );
+}
+
+async function handleExternalStorageChange(storageKey, externalValue) {
+  if (storageConflict) {
+    storageConflictExternalValues.set(storageKey, externalValue);
     return;
   }
-  if (!vault.isUnlocked()) return;
+  storageConflict = true;
+  storageConflictExternalValues = new Map([[storageKey, externalValue]]);
+  locking = true;
+  syncController?.abort();
+  syncController?.abort();
+  clearTimeout(idleTimer);
+  clearTimeout(syncTimer);
+  closeSettings();
+  $('#dlg-pair')?.close();
+  hideNotice();
+  $('#app-root').replaceChildren();
+  showLock();
+  $('#btn-storage-retry')?.remove();
+
+  // Laat reeds gestarte writes afronden, maar schrijf de externe envelop niet terug.
+  while (busyOperations.size) await Promise.allSettled([...busyOperations]);
+  await updateChain.catch(() => {});
+  if (syncPromise) await syncPromise;
+
+  showError(
+    '#lock-error',
+    'De kluis is buiten de actieve sessielock om gewijzigd (bijvoorbeeld door een ouder tabblad). Deze tab blijft afgeschermd. Download de lokale versleutelde herstelkopieën en, als die beschikbaar is, de externe opslagkopie voordat je verdergaat; sluit of ververs deze tab niet.'
+  );
+  let button = $('#btn-storage-conflict-export');
+  if (!button) {
+    button = h('button', { id: 'btn-storage-conflict-export', type: 'button', class: 'btn btn-primary' }, 'Download herstelkopieën');
+    $('#lock-error').after(button);
+  }
+  button.hidden = false;
+  button.onclick = async () => {
+    if (!window.confirm('Heb je andere openstaande tabbladen van deze app gesloten? Download de lokale herstelkopieën en, als die beschikbaar is, de externe herstelkopie voordat je verdergaat.')) return;
+    button.disabled = true;
+    try {
+      const localEnvelope = await vault.createRecoveryEnvelope();
+      await saveFile(
+        `${APP.storagePrefix}-recovery-local-${today()}.json`,
+        JSON.stringify(localEnvelope, null, 2)
+      );
+      const localDeviceSettings = await vault.createDeviceSettingsRecovery(
+        settings ?? await vault.getDeviceSettings() ?? {}
+      );
+      await saveFile(
+        `${APP.storagePrefix}-recovery-device-settings-local-${today()}.json`,
+        JSON.stringify(localDeviceSettings)
+      );
+      for (const [key, value] of storageConflictExternalValues) {
+        if (!value) continue;
+        const suffix = key === vault.KEYS.device ? 'device-settings' : 'external-vault';
+        await saveFile(
+          `${APP.storagePrefix}-recovery-${suffix}-${today()}.json`,
+          value
+        );
+      }
+      vault.lock();
+      settings = null;
+      await releaseAppSession();
+      storageConflict = false;
+      storageConflictExternalValues = new Map();
+      locking = false;
+      button.remove();
+      showError('#lock-error', 'Herstelkopieën zijn aangemaakt. Open de app opnieuw en herstel bewust de juiste kopie.');
+    } catch (error) {
+      showError('#lock-error', `Herstelkopieën konden niet volledig worden aangemaakt. Laat deze tab open en probeer opnieuw. ${error?.message || ''}`);
+    } finally {
+      button.disabled = false;
+    }
+  };
+}
+
+function showStorageRetry(error) {
+  if (storageConflict) return;
+  showLock();
+  showError('#lock-error', `Lokale opslag is niet bevestigd. De app blijft afgeschermd; probeer opnieuw. ${error?.message || ''}`);
+  let button = $('#btn-storage-retry');
+  if (!button) {
+    button = h('button', { id: 'btn-storage-retry', type: 'button', class: 'btn btn-primary' }, 'Opslag opnieuw proberen');
+    $('#lock-error').after(button);
+  }
+  button.hidden = false;
+  button.onclick = async () => {
+    button.disabled = true;
+    try {
+      await vault.retryFlush();
+      vault.lock();
+      settings = null;
+      await releaseAppSession();
+      locking = false;
+      button.remove();
+      showError('#lock-error', 'Lokale opslag bevestigd. Je kunt de kluis opnieuw openen.');
+    } catch (retryError) {
+      showError('#lock-error', `Opslag is nog niet bevestigd. Laat dit tabblad open en probeer opnieuw. ${retryError?.message || ''}`);
+    } finally {
+      button.disabled = false;
+    }
+  };
+}
+
+async function recoverFailedSession(error, selector) {
+  if (storageConflict) return;
+  if (!vault.isUnlocked()) {
+    await releaseAppSession();
+    locking = false;
+    showError(selector, error?.message || 'Ontgrendelen is mislukt.');
+    return;
+  }
+  try {
+    await vault.flush();
+    vault.lock();
+    await releaseAppSession();
+    locking = false;
+    showError(selector, error?.message || 'Ontgrendelen is mislukt.');
+  } catch (storageError) {
+    if (!storageConflict) showStorageRetry(storageError);
+  }
+}
+
+async function applyUpdate(mutator) {
+  if (locking) throw new Error('De app wordt vergrendeld.');
+  if (blocked) throw new Error('Werk de app eerst bij voordat je iets wijzigt.');
+  if (!vault.isUnlocked()) throw new Error('De kluis is vergrendeld.');
   try {
     const draft = structuredClone(vault.getData());
     const result = (await mutator(draft)) ?? draft;
@@ -53,21 +230,36 @@ async function applyUpdate(mutator) {
     render();
     updateSyncIndicator();
     scheduleSync();
+    return result;
   } catch (err) {
-    console.error(err);
+    console.error('Opslaan mislukt:', err?.name || 'Error');
     toast(`Opslaan mislukt: ${err.message}`, 'error');
+    if (vault.getStorageStatus().pending) showStorageNotice(err);
+    throw err;
   }
 }
 
 // Het object dat app.render() krijgt.
 const ctx = {
   get data() { return vault.getData(); },
-  /** Wijzig gegevens: await ctx.update(d => { d.items.push(...) }) */
+  /** Wijzig gegevens: resolve't pas na lokale persist; fouten worden doorgegeven. */
   update(mutator) {
-    const run = updateChain.then(() => applyUpdate(mutator));
+    const run = updateChain.catch(() => {}).then(() => applyUpdate(mutator));
     updateChain = run;
     return run;
   },
+  /** Wacht op bevestiging van de actuele lokale revisie. */
+  flush: () => vault.flush(),
+  /** Niet-gevoelige status van de lokale schrijfwachtrij. */
+  getStorageStatus: () => vault.getStorageStatus(),
+  /** Eenmalige expliciete retry van de volledige actuele snapshot. */
+  retryStorage: async () => {
+    try { const result = await vault.retryFlush(); hideNotice(); return result; }
+    catch (err) { showStorageNotice(err); throw err; }
+  },
+  /** Device-settings zijn versleuteld en worden niet gesynchroniseerd. */
+  getDeviceSettings: () => vault.getDeviceSettings(),
+  setDeviceSettings: saveDeviceSettings,
   toast,
   confirm: (msg) => window.confirm(msg),
   /** Het scherm dat nu getoond wordt: een id uit app.screens. */
@@ -127,6 +319,8 @@ export async function start() {
     showLock();
     autoBiometricUnlock();
   } else showScreen('setup');
+  window.addEventListener('hashchange', handleIncomingPairLink);
+  handleIncomingPairLink();
 }
 
 // ---------- Hulpjes ----------
@@ -142,11 +336,15 @@ function showError(sel, message) {
 }
 
 async function withBusy(button, fn) {
+  if (locking) throw new Error('De app wordt vergrendeld.');
   button.disabled = true;
   button.dataset.busy = '';
+  const operation = Promise.resolve().then(fn);
+  busyOperations.add(operation);
   try {
-    return await fn();
+    return await operation;
   } finally {
+    busyOperations.delete(operation);
     button.disabled = false;
     delete button.dataset.busy;
   }
@@ -210,9 +408,12 @@ function readGithub(v) {
 }
 
 function bioMessage(err) {
-  if (err?.name === 'NotAllowedError') return 'Geannuleerd of niet toegestaan.';
+  if (err?.name === 'NotAllowedError') return 'Passkey-aanvraag geannuleerd of niet toegestaan. Je kunt de kluis met je wachtwoord openen.';
+  if (err?.name === 'NotSupportedError') return 'Deze browser of authenticator ondersteunt passkey-ontgrendeling met PRF niet. Gebruik je wachtwoord.';
+  if (err?.name === 'NotFoundError') return 'Geen passende passkey gevonden. Je kunt de kluis met je wachtwoord openen.';
+  if (err?.name === 'SecurityError') return 'Passkey is niet beschikbaar vanuit deze app-context. Open de app via de HTTPS-app-link of gebruik je wachtwoord.';
   if (err?.name === 'InvalidStateError') return 'Er bestaat al een passkey voor deze app op dit apparaat.';
-  return err?.message || 'Ontgrendelen met passkey is mislukt.';
+  return err?.message || 'Ontgrendelen met passkey is mislukt. Je kunt ook je wachtwoord gebruiken.';
 }
 
 // ---------- Wachtwoordvelden ----------
@@ -277,35 +478,74 @@ function enhancePasswordFields() {
 
 // ---------- Setup ----------
 
+function selectSetupTab(mode) {
+  $$('[data-setup-tab]').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.setupTab === mode)));
+  $('#form-setup-new').hidden = mode !== 'new';
+  $('#form-setup-link').hidden = mode !== 'link';
+  showError('#setup-error', '');
+}
+
+/**
+ * Zet de handmatige GitHub-velden in een inklapbaar blok. Met een koppelcode
+ * of QR-link zijn ze niet nodig; zo blijven alleen koppelcode, pincode en
+ * wachtwoord zichtbaar.
+ */
+function collapseManualGithubFields(form) {
+  if (form.querySelector('.setup-manual')) return;
+  const containers = [];
+  for (const name of ['owner', 'repo', 'branch', 'path', 'token']) {
+    const input = form.elements[name];
+    if (!input) continue;
+    const box = input.closest('.field-row') || input.closest('.field') || input;
+    if (!containers.includes(box)) containers.push(box);
+  }
+  if (!containers.length) return;
+  const body = h('div', { class: 'stack' });
+  const details = h('details', { class: 'setup-manual' },
+    h('summary', {}, 'Geen koppelcode? GitHub-gegevens zelf invullen'), body);
+  containers[0].before(details);
+  body.append(...containers);
+}
+
+// Hide legacy authentication fields only for a recognised v3 code.
+function updatePairingFields(form) {
+  const full = pairUi.isFullPairCode(pairUi.extractPairCode(form.elements.pairCode?.value));
+  for (const name of ['pairPin', 'password']) {
+    const input = form.elements[name];
+    if (!input) continue;
+    const box = input.closest('.field') || input.closest('.field-row') || input;
+    box.hidden = full;
+    input.disabled = full;
+    if (full) input.value = '';
+  }
+  if (full) {
+    const manual = form.querySelector('.setup-manual');
+    if (manual) manual.open = false;
+  }
+  return full;
+}
+
 function wireSetup() {
   const newForm = $('#form-setup-new');
   const linkForm = $('#form-setup-link');
   // Via het attribuut, zodat form.reset() de standaardwaarden terugzet.
   linkForm.elements.branch.setAttribute('value', APP.defaultBranch);
   linkForm.elements.path.setAttribute('value', APP.defaultDataPath);
+  if (APP.defaultOwner) linkForm.elements.owner.setAttribute('value', APP.defaultOwner);
+  if (APP.defaultRepo) linkForm.elements.repo.setAttribute('value', APP.defaultRepo);
+  // Validatie gebeurt hieronder zelf: met een koppelcode zijn de GitHub-velden niet verplicht.
+  linkForm.noValidate = true;
+  collapseManualGithubFields(linkForm);
+  linkForm.elements.pairCode?.addEventListener('input', () => updatePairingFields(linkForm));
+  linkForm.addEventListener('reset', () => queueMicrotask(() => updatePairingFields(linkForm)));
+  updatePairingFields(linkForm);
+  // Koppelen gebeurt in één stap via "Koppelen en ophalen"; de losse knop is niet meer nodig.
+  const pairInButton = $('#btn-pair-in');
+  if (pairInButton) pairInButton.hidden = true;
 
   for (const form of [newForm, linkForm]) form.addEventListener('input', () => showError('#setup-error', ''));
 
-  $$('[data-setup-tab]').forEach((tab) => tab.addEventListener('click', () => {
-    const mode = tab.dataset.setupTab;
-    $$('[data-setup-tab]').forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
-    newForm.hidden = mode !== 'new';
-    linkForm.hidden = mode !== 'link';
-    showError('#setup-error', '');
-  }));
-
-  // Koppelcode van een ander apparaat: vult eigenaar, repo, branch, pad en token in.
-  $('#btn-pair-in')?.addEventListener('click', async (e) => {
-    showError('#setup-error', '');
-    await withBusy(e.currentTarget, async () => {
-      const gh = await pair.readPairCode(linkForm.elements.pairCode.value, linkForm.elements.pairPin.value);
-      for (const k of ['owner', 'repo', 'branch', 'path', 'token']) linkForm.elements[k].value = gh[k] ?? '';
-      linkForm.elements.pairCode.value = '';
-      linkForm.elements.pairPin.value = '';
-      linkForm.elements.password.focus();
-      toast('Koppeling ingevuld. Vul nu het wachtwoord van je kluis in.', 'ok');
-    }).catch((err) => showError('#setup-error', err.message));
-  });
+  $$('[data-setup-tab]').forEach((tab) => tab.addEventListener('click', () => selectSetupTab(tab.dataset.setupTab)));
 
   newForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -314,29 +554,101 @@ function wireSetup() {
     showError('#setup-error', problem);
     if (problem) return;
     await withBusy(newForm.querySelector('[type=submit]'), async () => {
-      await vault.create(password, app.initialData());
-      await vault.setDeviceSettings({ github: null, autoSync: true });
-      newForm.reset();
-      await afterUnlock();
-    }).catch((err) => showError('#setup-error', err.message));
+      await acquireAppSession();
+      try {
+        await vault.create(password, app.initialData());
+        await saveDeviceSettings({ github: null, autoSync: true });
+        newForm.reset();
+        await afterUnlock();
+      } catch (err) {
+        await recoverFailedSession(err, '#setup-error');
+        throw err;
+      }
+    }).catch((err) => {
+      if ($('#screen-setup').hidden) return;
+      showError('#setup-error', err.message);
+    });
   });
 
   linkForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const v = formValues(linkForm);
-    const github = readGithub(v);
     showError('#setup-error', '');
     await withBusy(linkForm.querySelector('[type=submit]'), async () => {
-      const remote = await createClient(github).getFile();
-      if (!remote) throw new Error('Geen kluisbestand gevonden op dit pad in de repo.');
-      await vault.importEnvelope(remote.envelope, v.password);
-      vault.setSyncMeta({ sha: remote.sha, dirty: false, lastSyncAt: Date.now() });
-      await vault.setDeviceSettings({ github, autoSync: true });
-      linkForm.reset();
-      await afterUnlock({ skipSync: true });
+      let pairing = null;
+      let github;
+      if ((v.pairCode || '').trim()) {
+        pairing = await pairUi.openPairing({ input: v.pairCode, pin: v.pairPin, context: APP.storagePrefix });
+        if (!pairing.dataKey && !v.password) throw new Error('Vul ook het wachtwoord van je kluis in.');
+        github = readGithub(pairing.syncConfig);
+      } else {
+        github = readGithub(v);
+        if (!github.owner || !github.repo || !github.token) {
+          throw new Error('Plak de koppelcode van je andere apparaat, of vul onder "GitHub-gegevens zelf invullen" eigenaar, repo en token in.');
+        }
+        if (!v.password) throw new Error('Vul het wachtwoord van je kluis in.');
+      }
+      await acquireAppSession();
+      try {
+        const remote = await createClient(github).getFile();
+        if (!remote) throw new Error('Geen kluisbestand gevonden op dit pad in de repo.');
+        if (pairing?.dataKey) {
+          if (Date.now() >= pairing.expiresAt) throw new Error('Deze koppelcode is verlopen. Maak een nieuwe code.');
+          await vault.importEnvelopeWithKey(remote.envelope, pairing.dataKey, {
+            syncMeta: { sha: remote.sha, dirty: false, lastSyncAt: Date.now() },
+            deviceSettings: { github, autoSync: true },
+          });
+        } else {
+          await vault.importEnvelope(remote.envelope, v.password);
+          vault.setSyncMeta({ sha: remote.sha, dirty: false, lastSyncAt: Date.now() });
+          await vault.setDeviceSettings({ github, autoSync: true });
+        }
+        linkForm.reset();
+      } catch (err) {
+        await recoverFailedSession(err, '#setup-error');
+        throw err;
+      }
+      // Pas na een volledig geslaagde koppeling registreren, zodat een typfout
+      // in het wachtwoord geen nieuwe koppelcode vraagt.
+      if (pairing) {
+        try { pairing.markUsed(); } catch (err) { toast(`Gekoppeld, maar de replaybescherming kon niet worden bijgewerkt: ${err.message}`, 'error'); }
+      }
+      await afterUnlock({ skipSync: true, preferExistingPasskey: Boolean(pairing?.dataKey) });
       toast('Kluis opgehaald van GitHub.', 'ok');
-    }).catch((err) => showError('#setup-error', err.message));
+    }).catch((err) => {
+      if ($('#screen-setup').hidden) return;
+      showError('#setup-error', err.message);
+    });
   });
+}
+
+/** Vangt een QR-link (?pair=…) op die de camera van dit apparaat heeft geopend. */
+function handleIncomingPairLink() {
+  const incoming = pairUi.takeIncomingPairCode();
+  if (!incoming) return;
+  if (vault.isUnlocked() || localStorage.getItem(vault.KEYS.vault) !== null || $('#screen-setup').hidden) {
+    toast('Deze app heeft op dit apparaat al een kluis. Een koppel-QR is alleen voor een nieuw apparaat; er is niets gewijzigd.', 'error');
+    return;
+  }
+  const form = $('#form-setup-link');
+  if (busyOperations.size) {
+    toast('Er loopt al een handeling. Open de koppellink opnieuw zodra deze klaar is.', 'error');
+    return;
+  }
+  form.reset();
+  selectSetupTab('link');
+  if (incoming.invalid) {
+    showError('#setup-error', 'De QR-link bevat geen geldige koppelcode. Maak op je andere apparaat een nieuwe QR-code.');
+    return;
+  }
+  form.elements.pairCode.value = incoming.code;
+  if (updatePairingFields(form)) {
+    form.querySelector('[type=submit]')?.focus();
+    toast('Koppelcode ontvangen. Kies Koppelen en ophalen.', 'ok');
+  } else {
+    form.elements.pairPin?.focus();
+    toast('Koppelcode ontvangen. Vul de pincode en het wachtwoord van je kluis in.', 'ok');
+  }
 }
 
 // ---------- Vergrendelen / ontgrendelen ----------
@@ -356,10 +668,18 @@ function wireLock() {
     const { password } = formValues(form);
     showError('#lock-error', '');
     await withBusy(form.querySelector('[type=submit]'), async () => {
-      await vault.unlockWithPassword(password);
-      form.reset();
-      await afterUnlock();
-    }).catch((err) => showError('#lock-error', err.message));
+      await acquireAppSession();
+      try {
+        await vault.unlockWithPassword(password);
+        form.reset();
+        await afterUnlock();
+      } catch (err) {
+        await recoverFailedSession(err, '#lock-error');
+        throw err;
+      }
+    }).catch((err) => {
+      if (!$('#btn-storage-retry')) showError('#lock-error', err.message);
+    });
   });
 
   $('#btn-bio-unlock').addEventListener('click', () => biometricUnlock());
@@ -376,9 +696,15 @@ async function biometricUnlock({ auto = false } = {}) {
   showError('#lock-error', '');
   try {
     await withBusy($('#btn-bio-unlock'), async () => {
-      const key = await bio.unlock();
-      await vault.unlockWithKey(key);
-      await afterUnlock();
+      await acquireAppSession();
+      try {
+        const key = await bio.unlock();
+        await vault.unlockWithKey(key);
+        await afterUnlock();
+      } catch (err) {
+        await recoverFailedSession(err, '#lock-error');
+        throw err;
+      }
     });
   } catch (err) {
     const quiet = auto && (err?.name === 'NotAllowedError' || err?.name === 'AbortError');
@@ -401,7 +727,8 @@ async function autoBiometricUnlock() {
   await biometricUnlock({ auto: true });
 }
 
-async function afterUnlock({ skipSync = false } = {}) {
+async function afterUnlock({ skipSync = false, preferExistingPasskey = false } = {}) {
+  locking = false;
   session++;
   const initial = vault.getData();
   blocked = (initial?.schema ?? 0) > SCHEMA_VERSION;
@@ -422,7 +749,7 @@ async function afterUnlock({ skipSync = false } = {}) {
   requestPersistentStorage();
 
   if (blocked) showUpdateRequired();
-  else offerBiometrics();
+  else offerBiometrics({ preferExisting: preferExistingPasskey });
   if (!skipSync && !blocked && isSyncConfigured()) runSync({ quiet: true });
 }
 
@@ -446,10 +773,10 @@ async function enrollBiometrics(button, { existing = false } = {}) {
   updateBioUI();
 }
 
-async function offerBiometrics() {
-  if (bio.isEnrolled() || localStorage.getItem(BIO_OFFER_KEY) || !(await bio.isSupported())) return;
-  const enable = h('button', { class: 'btn btn-primary btn-small', type: 'button' }, 'Nieuwe passkey');
-  const existing = h('button', { class: 'btn btn-small', type: 'button' }, 'Bestaande gebruiken');
+async function offerBiometrics({ preferExisting = false } = {}) {
+  if (bio.isEnrolled() || (!preferExisting && localStorage.getItem(BIO_OFFER_KEY)) || !(await bio.isSupported()) || !vault.isUnlocked() || locking) return;
+  const enable = h('button', { class: preferExisting ? 'btn btn-small' : 'btn btn-primary btn-small', type: 'button' }, 'Nieuwe passkey');
+  const existing = h('button', { class: preferExisting ? 'btn btn-primary btn-small' : 'btn btn-small', type: 'button' }, 'Bestaande gebruiken');
   const later = h('button', { class: 'btn btn-ghost btn-small', type: 'button' }, 'Niet nu');
   enable.addEventListener('click', () => enrollBiometrics(enable));
   existing.addEventListener('click', () => enrollBiometrics(existing, { existing: true }));
@@ -459,7 +786,7 @@ async function offerBiometrics() {
   });
   showNotice(
     h('p', {}, h('strong', {}, 'Sneller ontgrendelen?'), ' Gebruik Face ID, Touch ID of een passkey in plaats van je wachtwoord. Had je de app al eerder geïnstalleerd? Kies dan je bestaande passkey.'),
-    h('div', { class: 'button-row' }, enable, existing, later),
+    h('div', { class: 'button-row' }, ...(preferExisting ? [existing, enable, later] : [enable, existing, later])),
   );
 }
 
@@ -481,8 +808,10 @@ function showUpdateRequired() {
  * (maximaal 8 seconden) gesynchroniseerd; daarna wordt de sleutel gewist.
  */
 async function lockNow() {
-  if (!vault.isUnlocked()) return;
+  if (!vault.isUnlocked() || locking) return;
   const mySession = session;
+  locking = true;
+  syncController?.abort();
   clearTimeout(idleTimer);
   clearTimeout(syncTimer);
   closeSettings();
@@ -491,15 +820,23 @@ async function lockNow() {
   $('#app-root').replaceChildren();
   showLock();
 
-  const meta = vault.getSyncMeta();
-  if (meta.dirty && isSyncConfigured() && !blocked && navigator.onLine) {
-    await Promise.race([runSync({ quiet: true }), sleep(8000)]);
-  } else {
+  try {
+    // Eerst alle al gestarte app-updates en synchronisatie laten afronden.
+    // Tijdens locking worden geen nieuwe updates of sync-runs gestart.
+    while (busyOperations.size) await Promise.allSettled([...busyOperations]);
+    await updateChain.catch(() => {});
+    if (syncPromise) await syncPromise;
+    if (storageConflict) return;
     await vault.flush();
-  }
-  if (session === mySession) { // niet intussen opnieuw ontgrendeld
-    vault.lock();
-    settings = null;
+    if (storageConflict) return;
+    if (session === mySession) {
+      vault.lock();
+      settings = null;
+      await releaseAppSession();
+      locking = false;
+    }
+  } catch (err) {
+    if (!storageConflict) showStorageRetry(err);
   }
 }
 
@@ -542,7 +879,21 @@ function updateSyncIndicator() {
   setSyncState('ok', meta.lastSyncAt ? `Gesynchroniseerd ${formatWhen(meta.lastSyncAt)}` : 'Gesynchroniseerd');
 }
 
-async function runSync({ quiet = false } = {}) {
+function runSync(options = {}) {
+  if (locking || !vault.isUnlocked()) return Promise.resolve();
+  if (syncPromise) return syncPromise;
+  syncController = new AbortController();
+  const operation = performSync({ ...options, signal: syncController.signal });
+  syncPromise = operation;
+  return operation.finally(() => {
+    if (syncPromise === operation) {
+      syncPromise = null;
+      syncController = null;
+    }
+  });
+}
+
+async function performSync({ quiet = false, signal } = {}) {
   if (!vault.isUnlocked()) return;
   if (!isSyncConfigured()) {
     if (!quiet) openSettings('sync');
@@ -562,15 +913,15 @@ async function runSync({ quiet = false } = {}) {
   setSyncState('syncing', 'Bezig met synchroniseren…');
   try {
     const result = await syncNow({
-      settings: settings.github, merge: app.merge, migrate: app.migrate, schemaVersion: SCHEMA_VERSION,
+      settings: settings.github, merge: app.merge, migrate: app.migrate, schemaVersion: SCHEMA_VERSION, signal,
     });
-    if (!vault.isUnlocked()) return;
+    if (!vault.isUnlocked() || locking) return;
     if (result === 'downloaded' || result === 'merged') render();
     updateSyncIndicator();
     renderSyncDevices();
     if (!quiet) toast(SYNC_MESSAGES[result], 'ok');
   } catch (err) {
-    if (!vault.isUnlocked()) return;
+    if (!vault.isUnlocked() || locking) return;
     if (err instanceof UpdateRequiredError) {
       showUpdateRequired();
       return;
@@ -719,7 +1070,7 @@ function renderSyncDevices() {
         if (!window.confirm(warning)) return;
         button.disabled = true;
         try {
-          await vault.deactivateSyncDevice(device.id);
+          await trackOperation(() => vault.deactivateSyncDevice(device.id));
           renderSyncDevices();
           await runSync({ quiet: true });
           if (vault.getSyncMeta().dirty) toast('Afmelding lokaal opgeslagen. Synchronisatie volgt zodra je online bent.', 'error');
@@ -785,7 +1136,7 @@ async function updateBioUI() {
   setText('#sum-security', supported ? 'Face ID / passkey uit' : 'Alleen wachtwoord');
   status.textContent = supported
     ? 'Uit. Ontgrendel met Face ID, Touch ID, Windows Hello of een passkey.'
-    : 'Niet beschikbaar in deze browser of op dit apparaat.';
+    : 'Passkey-ontgrendeling met PRF is niet beschikbaar in deze browser of op dit apparaat. Je kunt de kluis met je wachtwoord openen.';
   // Zonder knop "Bestaande gebruiken" in deze app: één knop die een nieuwe passkey maakt.
   btn.textContent = existing ? 'Nieuwe passkey' : 'Inschakelen';
   btn.disabled = !supported;
@@ -793,41 +1144,18 @@ async function updateBioUI() {
 }
 
 /**
- * Ander apparaat koppelen: toont een koppelcode en een losse pincode. De code
- * bevat de GitHub-koppeling (met token), versleuteld met de pincode. Het
- * wachtwoord van de kluis zit er niet in.
+ * Ander apparaat koppelen: volledige toegang via een geheime v3-code.
+ * Het wachtwoord en de passkey worden niet overgedragen.
  */
 async function openPairOut() {
   if (!isSyncConfigured()) throw new Error('Stel eerst de synchronisatie in.');
-  const pin = pair.newPin();
-  const code = await pair.makePairCode(settings.github, pin);
-  const field = h('textarea', { class: 'pair-code', readonly: true, rows: 4, 'aria-label': 'Koppelcode' }, code);
-  const copy = h('button', { class: 'btn btn-primary', type: 'button' }, 'Koppelcode kopiëren');
-  const close = h('button', { class: 'btn', type: 'button' }, 'Klaar');
-  const dlg = h('dialog', { id: 'dlg-pair', class: 'sheet pair-sheet', 'aria-labelledby': 'pair-title' },
-    h('div', { class: 'sheet-header' }, h('h2', { id: 'pair-title' }, 'Ander apparaat koppelen')),
-    h('div', { class: 'sheet-body stack' },
-      h('ol', { class: 'pair-steps' },
-        h('li', {}, 'Zet de koppelcode op je andere apparaat, bijvoorbeeld via AirDrop, Notities of een bericht aan jezelf.'),
-        h('li', {}, `Open daar ${APP.name}, kies `, h('strong', {}, 'Bestaande koppelen'), ' en plak de koppelcode.'),
-        h('li', {}, 'Typ de pincode hieronder over en vul het wachtwoord van je kluis in.')),
-      field,
-      h('p', { class: 'pair-pin' }, h('span', { class: 'muted' }, 'Pincode'), h('strong', {}, pin)),
-      h('p', { class: 'hint' }, 'Stuur de pincode niet samen met de koppelcode mee. De code werkt alleen met deze pincode; sluit je dit venster, dan is de pincode weg.'),
-      h('div', { class: 'button-row' }, copy, close)));
-  copy.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      toast('Koppelcode gekopieerd.', 'ok');
-    } catch {
-      field.select();
-      toast('Kopiëren lukte niet. Selecteer de code en kopieer hem zelf.');
-    }
+  if (!vault.isUnlocked() || locking || storageConflict) throw new Error('De kluis is vergrendeld.');
+  const sourceSession = session;
+  await pairUi.openPairOutDialog({
+    syncConfig: settings.github, dataKey: vault.getDataKey(), context: APP.storagePrefix,
+    appName: APP.name, toast,
+    isAuthorized: () => vault.isUnlocked() && !locking && !storageConflict && session === sourceSession,
   });
-  close.addEventListener('click', () => dlg.close());
-  dlg.addEventListener('close', () => dlg.remove());
-  document.body.append(dlg);
-  dlg.showModal();
 }
 
 async function checkForUpdate(button) {
@@ -977,8 +1305,12 @@ function wireSettings() {
   // Gevarenzone
   $('#btn-reset').addEventListener('click', async () => {
     if (!window.confirm('Alle gegevens van deze app op DIT apparaat wissen? Gegevens op GitHub blijven bewaard.')) return;
-    await vault.reset();
-    location.reload();
+    try {
+      await trackOperation(() => vault.reset());
+      location.reload();
+    } catch (err) {
+      toast(`Wissen mislukt: ${err.message}`, 'error');
+    }
   });
 }
 
@@ -1024,30 +1356,26 @@ function wireLifecycle() {
 
 function wireOtherTabs() {
   window.addEventListener('storage', async (e) => {
+    if (e.key === null) {
+      if (vault.isUnlocked()) {
+        await handleExternalStorageChange(vault.KEYS.vault, null);
+      } else if (!vault.hasVault()) {
+        location.reload();
+      }
+      return;
+    }
     if (!e.key?.startsWith(`${APP.storagePrefix}:`)) return;
 
-    if (e.key === vault.KEYS.vault) {
-      if (!vault.hasVault()) { location.reload(); return; } // gewist in ander tabblad
-      if (!vault.isUnlocked()) return;
-      if (await vault.reloadFromStorage()) {
-        blocked = (vault.getData()?.schema ?? 0) > SCHEMA_VERSION;
-        if (blocked) showUpdateRequired();
-        render();
-        updateSyncIndicator();
-      } else {
-        // Sleutel past niet meer (bijv. back-up teruggezet in ander tabblad).
-        settings = null;
-        $('#app-root').replaceChildren();
-        showLock();
+    if (e.key === vault.KEYS.vault || e.key === vault.KEYS.device) {
+      if (vault.isUnlocked()) {
+        await handleExternalStorageChange(e.key, e.newValue);
+        return;
       }
+      if (e.key === vault.KEYS.vault && !vault.hasVault()) location.reload();
       return;
     }
 
     if (!vault.isUnlocked()) return;
-    if (e.key === vault.KEYS.device) {
-      settings = (await vault.getDeviceSettings()) ?? settings;
-      if (settingsVisible()) fillSettings();
-    }
     updateSyncIndicator();
   });
 }
